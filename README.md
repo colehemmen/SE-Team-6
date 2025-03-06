@@ -1,6 +1,37 @@
-Instructions: Upon running the PlayerEntryScreen in the virtual machine, the user will be asked to enter a numeric player ID. If the ID is not already found, the program will recognize the user as a new player, and recognize them as a returning player if the ID has been found. The user is then asked to input their code name and equipment ID. After entering this data, the program will continue to ask for player IDs along with code names and equipment IDs until F5 is pressed, which will exit the loop. Finally, the program will display a table showing each player's ID alongside their corresponding codenames.
+## Run Instructions
+- [`Virtual Machine Setup`](#virtual-machine-setup)
+- [`Running the Program`](#running-the-program)
 
-Project Members:
+## Virtual Machine Setup
+Move the project to the VM. Either drag / drop the project from your local machine, or clone the repository.
+
+Install the required packages:
+```bat
+sudo apt update
+
+sudo apt install default-jdk openjdk-11-jdk postgresql postgresql-client libpostgresql-jdbc-java libpostgresql-jdbc-java-doc
+```
+
+Update the enviornment variables:
+```env
+JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+CLASSPATH=".:/usr/share/java/mysql.jar:/usr/share/java/postgresql-jdbc4.jar"
+```
+
+Note: Double check that Java was installed to the location above. If not, reinstall in the correct location.
+
+## Running the Program
+Navigate to the project directory, and execute the following to compile the program:
+```bat
+javac PlayerEntryScreen.java
+```
+
+To run the program, execute the following:
+```bat
+java -cp .:/usr/share/java/postgresql-jdbc4.jar PlayerEntryScreen
+```
+
+## Project Members:
 | GITHUB USERNAME  |    REAL NAME     |
 | ---------------- | ---------------- |
 | colehemmen       | Cole Hemmen      |
