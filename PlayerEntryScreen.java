@@ -1,12 +1,24 @@
 import java.sql.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
+
 import java.util.Scanner;
 
-public class PlayerEntryScreen {
-    private static boolean running = true;
+public class Player {
+
     private static Connection conn;
+
+    public static void writeToScreen(TextField[][] textFields, String codeName) {
+        for(int i = 0; i < 15; i++) {
+            for(int j = 0; j < 2; j++) {
+                if(textFields[i][j].getText().equals("")) {
+                    textFields[i][j].setText(codeName);
+                    return;
+                }
+            }
+        }
+    }
 
     public static void main(String[] args) {
         // Define connection parameters
@@ -39,16 +51,115 @@ public class PlayerEntryScreen {
 
         Scanner scan = new Scanner(System.in);
 
-        // GUI Component to capture key events
-        JFrame frame = new JFrame("Press F5 to Exit");
-        frame.setSize(300, 200);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        Frame frame = new Frame("Player Screen");
+        frame.setSize(400, 600);
+        frame.setBackground(Color.BLACK);
+        frame.setLayout(new GridLayout(17, 4)); //SET ROWS TO 17 IF NOT USING TERMINAL LABEL
 
-        addKeyListenerToFrame(frame);
+        Label left = new Label("BLUE TEAM", Label.CENTER);
+        left.setBackground(Color.CYAN);
+        Label right = new Label("RED TEAM", Label.CENTER);
+        right.setBackground(Color.PINK);
+
+        frame.add(left);
+        frame.add(right);
+        
+        // Creating a 2D array of TextAreas
+        TextField[][] textFields = new TextField[15][2];
+        
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 2; j++) {
+                textFields[i][j] = new TextField();
+                if(j == 0) {
+                    textFields[i][j].setBackground(Color.CYAN);
+                    textFields[i][j].setText("");
+                    //counterL++;
+                }
+                else {
+                    textFields[i][j].setBackground(Color.PINK);
+                    textFields[i][j].setText("");
+                    //counterR++;
+                }
+                frame.add(textFields[i][j]);
+            }
+        }
+
+        Label f5 = new Label("[F5] = EXIT", Label.CENTER);
+        f5.setBackground(Color.BLACK);
+        f5.setForeground(Color.WHITE);
+        f5.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //System.out.println("Label clicked!");
+                frame.requestFocus();
+            }
+        });
+        Label f12 = new Label("[F12] = CLEAR", Label.CENTER);
+        f12.setBackground(Color.BLACK);
+        f12.setForeground(Color.WHITE);
+        f12.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //System.out.println("Label clicked!");
+                frame.requestFocus();
+            }
+        });
+
+        frame.add(f5);
+        frame.add(f12);
+
+        KeyListener f5Pressed = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    frame.dispose();
+                    System.exit(0); //JUST EXITING FOR RIGHT NOW BUT WHEN WE HAVE A GAME ACTION SCREEN TO SWITCH TO, 
+                    //THAT WILL BE SWITCHED HERE
+                }
+            }
+
+                @Override
+                public void keyReleased(KeyEvent e) {}
+
+                @Override
+                public void keyTyped(KeyEvent e) {}
+        };
+
+        KeyListener f12Pressed = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F12) {
+                    for (int i = 0; i < 15; i++) {
+                        for (int j = 0; j < 2; j++) {
+                            textFields[i][j].setText("");
+                        }
+                    }
+                }
+            }
+
+                @Override
+                public void keyReleased(KeyEvent e) {}
+
+                @Override
+                public void keyTyped(KeyEvent e) {}
+        };
+
+        frame.addKeyListener(f5Pressed);
+        frame.addKeyListener(f12Pressed);
+        
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                frame.dispose();
+            }
+        });
+
+        //Label terminal = new Label("TERMINAL", Label.LEFT) //Probably won't need this
+        
+        frame.setVisible(true);
+        frame.requestFocus();
 
         try {
-            while (running) {
+            for (int i = 0; i < 30; i++) {
                 System.out.println("Please enter your player ID:");
                 int playerID = scan.nextInt();
                 scan.nextLine(); // Consume newline
@@ -60,9 +171,11 @@ public class PlayerEntryScreen {
 
                     if (rs.next()) {
                         System.out.println("Player found: Welcome back " + rs.getString("codename"));
+                        writeToScreen(textFields, rs.getString("codename"));
                     } else {
                         System.out.println("Player ID not found. Welcome first-time player! Please enter a codename:");
                         String codeName = scan.nextLine();
+                        writeToScreen(textFields, codeName);
 
                         try (PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)")) {
                             insertStmt.setInt(1, playerID);
@@ -75,7 +188,7 @@ public class PlayerEntryScreen {
                 }
 
                 System.out.println("Please enter your equipment ID:");
-                int equipmentID = scan.nextInt();
+                int equipmentID = scan.nextInt(); //THIS IS WHERE A FUNCTION WILL BE CALLED TO BROADCAST EQUIPMENT ID
                 scan.nextLine(); // Consume newline
             }
         } catch (SQLException e) {
@@ -88,35 +201,5 @@ public class PlayerEntryScreen {
             }
             scan.close();
         }
-    }
-
-    private static void addKeyListenerToFrame(JFrame frame) {
-        frame.addKeyListener(new KeyListener() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_F5) {
-                    running = false;
-                    System.out.println("F5 pressed. Exiting loop...");
-                    frame.dispose();
-
-                    // Fetch and display data from the table
-                    try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM player");
-                         ResultSet rs = pstmt.executeQuery()) {
-                        while (rs.next()) {
-                            System.out.println("ID: " + rs.getInt("id") + ", Codename: " + rs.getString("codename"));
-                        }
-                    } catch (SQLException j) {
-                        System.out.println("Error fetching data from PostgreSQL database: " + j.getMessage());
-                    }
-                    System.exit(0);
-                }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {}
-
-            @Override
-            public void keyTyped(KeyEvent e) {}
-        });
     }
 }
