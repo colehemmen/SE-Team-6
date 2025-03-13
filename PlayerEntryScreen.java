@@ -1,205 +1,155 @@
-import java.sql.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 import javax.swing.*;
 
-import java.util.Scanner;
-
-public class Player {
-
-    private static Connection conn;
-
-    public static void writeToScreen(TextField[][] textFields, String codeName) {
-        for(int i = 0; i < 15; i++) {
-            for(int j = 0; j < 2; j++) {
-                if(textFields[i][j].getText().equals("")) {
-                    textFields[i][j].setText(codeName);
-                    return;
-                }
-            }
-        }
-    }
+public class PlayerEntryScreen {
+    private static JTextField[][] textFields = new JTextField[15][2];
 
     public static void main(String[] args) {
-        // Define connection parameters
-        String url = "jdbc:postgresql://localhost:5432/photon";
-        String user = "student";
-        String password = "student";
+        SwingUtilities.invokeLater(PlayerEntryScreen::showSplashScreen);
+    }
 
-        try {
-            // Connect to PostgreSQL
-            conn = DriverManager.getConnection(url, user, password);
-            System.out.println("Connected to the PostgreSQL server successfully.");
+    private static void showSplashScreen() {
+        JFrame splashFrame = new JFrame("Splash Screen");
+        splashFrame.setUndecorated(true);
+        splashFrame.setSize(900, 500);
+        splashFrame.setLocationRelativeTo(null);
 
-            // Execute a query to get PostgreSQL version
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT version();");
-            if (rs.next()) {
-                System.out.println("Connected to - " + rs.getString(1));
-            }
+        ImageIcon photon = new ImageIcon("photon.png");
+        JLabel splashLabel = new JLabel(photon, SwingConstants.CENTER);
+        splashFrame.add(splashLabel);
 
-            // Create player table if not exists
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS player (id INT PRIMARY KEY, codename VARCHAR(30));";
-            stmt.executeUpdate(createTableSQL);
-            System.out.println("Table 'player' ensured to exist.");
-            rs.close();
-            stmt.close();
-        } catch (SQLException a) {
-            System.out.println("Error connecting to PostgreSQL database: " + a.getMessage());
-            return;
-        }
+        splashFrame.setVisible(true);
 
-        Scanner scan = new Scanner(System.in);
+        Timer timer = new Timer(3000, e -> {
+            splashFrame.dispose();
+            createAndShowGUI();
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
 
-        Frame frame = new Frame("Player Screen");
+    private static void createAndShowGUI() {
+        JFrame frame = new JFrame("Player Entry Screen");
         frame.setSize(400, 600);
-        frame.setBackground(Color.BLACK);
-        frame.setLayout(new GridLayout(17, 4)); //SET ROWS TO 17 IF NOT USING TERMINAL LABEL
+        frame.setLayout(new GridLayout(17, 2));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Label left = new Label("BLUE TEAM", Label.CENTER);
-        left.setBackground(Color.CYAN);
-        Label right = new Label("RED TEAM", Label.CENTER);
+        JLabel left = new JLabel("GREEN TEAM", SwingConstants.CENTER);
+        left.setOpaque(true);
+        left.setBackground(Color.GREEN);
+        JLabel right = new JLabel("RED TEAM", SwingConstants.CENTER);
+        right.setOpaque(true);
         right.setBackground(Color.PINK);
 
         frame.add(left);
         frame.add(right);
-        
-        // Creating a 2D array of TextAreas
-        TextField[][] textFields = new TextField[15][2];
-        
+
         for (int i = 0; i < 15; i++) {
             for (int j = 0; j < 2; j++) {
-                textFields[i][j] = new TextField();
-                if(j == 0) {
-                    textFields[i][j].setBackground(Color.CYAN);
-                    textFields[i][j].setText("");
-                    //counterL++;
-                }
-                else {
-                    textFields[i][j].setBackground(Color.PINK);
-                    textFields[i][j].setText("");
-                    //counterR++;
-                }
+                textFields[i][j] = new JTextField();
+                textFields[i][j].setBackground(j == 0 ? Color.GREEN : Color.PINK);
                 frame.add(textFields[i][j]);
             }
         }
 
-        Label f5 = new Label("[F5] = EXIT", Label.CENTER);
-        f5.setBackground(Color.BLACK);
-        f5.setForeground(Color.WHITE);
-        f5.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                //System.out.println("Label clicked!");
-                frame.requestFocus();
+        JButton submitButton = new JButton("Enter Player ID");
+        JTextField playerIDField = new JTextField();
+
+        frame.add(playerIDField);
+        frame.add(submitButton);
+
+        submitButton.addActionListener(e -> {
+            String playerIDText = playerIDField.getText().trim();
+            if (!playerIDText.matches("\\d+")) {
+                JOptionPane.showMessageDialog(frame, "Invalid Player ID! Must be a number.");
+                return;
             }
-        });
-        Label f12 = new Label("[F12] = CLEAR", Label.CENTER);
-        f12.setBackground(Color.BLACK);
-        f12.setForeground(Color.WHITE);
-        f12.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                //System.out.println("Label clicked!");
-                frame.requestFocus();
-            }
+            int playerID = Integer.parseInt(playerIDText);
+            processPlayerID(playerID);
         });
 
-        frame.add(f5);
-        frame.add(f12);
-
-        KeyListener f5Pressed = new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_F5) {
+        // Key Bindings for F5 (Exit) and F12 (Clear)
+        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "exit");
+        frame.getRootPane().getActionMap()
+            .put("exit", new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
                     frame.dispose();
-                    System.exit(0); //JUST EXITING FOR RIGHT NOW BUT WHEN WE HAVE A GAME ACTION SCREEN TO SWITCH TO, 
-                    //THAT WILL BE SWITCHED HERE
+                    System.exit(0);
                 }
-            }
+            });
 
+        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "clear");
+        frame.getRootPane().getActionMap()
+            .put("clear", new AbstractAction() {
                 @Override
-                public void keyReleased(KeyEvent e) {}
-
-                @Override
-                public void keyTyped(KeyEvent e) {}
-        };
-
-        KeyListener f12Pressed = new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_F12) {
+                public void actionPerformed(ActionEvent e) {
                     for (int i = 0; i < 15; i++) {
                         for (int j = 0; j < 2; j++) {
                             textFields[i][j].setText("");
                         }
                     }
                 }
-            }
+            });
 
-                @Override
-                public void keyReleased(KeyEvent e) {}
-
-                @Override
-                public void keyTyped(KeyEvent e) {}
-        };
-
-        frame.addKeyListener(f5Pressed);
-        frame.addKeyListener(f12Pressed);
-        
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent we) {
-                frame.dispose();
-            }
-        });
-
-        //Label terminal = new Label("TERMINAL", Label.LEFT) //Probably won't need this
-        
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        frame.requestFocus();
+    }
 
-        try {
-            for (int i = 0; i < 30; i++) {
-                System.out.println("Please enter your player ID:");
-                int playerID = scan.nextInt();
-                scan.nextLine(); // Consume newline
+    private static void processPlayerID(int playerID) {
+        try (Connection conn = connectToDatabase()) {
+            if (conn == null) return;
 
-                // Check for existing codename
-                try (PreparedStatement pstmt = conn.prepareStatement("SELECT codename FROM player WHERE id = ?")) {
-                    pstmt.setInt(1, playerID);
-                    ResultSet rs = pstmt.executeQuery();
+            PreparedStatement pstmt = conn.prepareStatement("SELECT codename FROM player WHERE id = ?");
+            pstmt.setInt(1, playerID);
+            ResultSet rs = pstmt.executeQuery();
 
-                    if (rs.next()) {
-                        System.out.println("Player found: Welcome back " + rs.getString("codename"));
-                        writeToScreen(textFields, rs.getString("codename"));
-                    } else {
-                        System.out.println("Player ID not found. Welcome first-time player! Please enter a codename:");
-                        String codeName = scan.nextLine();
-                        writeToScreen(textFields, codeName);
-
-                        try (PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)")) {
-                            insertStmt.setInt(1, playerID);
-                            insertStmt.setString(2, codeName);
-                            insertStmt.executeUpdate();
-                            System.out.println("Data inserted successfully.");
-                        }
-                    }
-                    rs.close();
+            if (rs.next()) {
+                String codename = rs.getString("codename");
+                JOptionPane.showMessageDialog(null, "Welcome back " + codename);
+                writeToScreen(codename);
+            } else {
+                String codeName = JOptionPane.showInputDialog("New player! Enter your codename:");
+                if (codeName != null && !codeName.trim().isEmpty()) {
+                    PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)");
+                    insertStmt.setInt(1, playerID);
+                    insertStmt.setString(2, codeName);
+                    insertStmt.executeUpdate();
+                    JOptionPane.showMessageDialog(null, "Codename saved successfully!");
+                    writeToScreen(codeName);
                 }
-
-                System.out.println("Please enter your equipment ID:");
-                int equipmentID = scan.nextInt(); //THIS IS WHERE A FUNCTION WILL BE CALLED TO BROADCAST EQUIPMENT ID
-                scan.nextLine(); // Consume newline
             }
         } catch (SQLException e) {
-            System.out.println("Database error: " + e.getMessage());
-        } finally {
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                System.out.println("Error closing database connection: " + ex.getMessage());
+            JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage());
+        }
+    }
+
+    private static Connection connectToDatabase() {
+        String url = "jdbc:postgresql://localhost:5432/photon";
+        String user = "student";
+        String password = "student";
+
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Failed to connect to database: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static void writeToScreen(String codeName) {
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (textFields[i][j].getText().isEmpty()) {
+                    textFields[i][j].setText(codeName);
+                    return;
+                }
             }
-            scan.close();
         }
     }
 }
+
