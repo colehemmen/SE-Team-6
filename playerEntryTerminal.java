@@ -107,17 +107,29 @@ public class Player {
 
         frame.add(f5);
         frame.add(f12);
+        
+KeyListener f5Pressed = new KeyAdapter() {
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_F5) {
+				System.out.println("\nCountdown Started!");  
+            new Thread(() -> { 
+                for (int i =30; i>=0; i--) {
+                    System.out.println("Time left: " + i + " seconds");
 
-        KeyListener f5Pressed = new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_F5) {
-                    frame.dispose();
-                    System.exit(0); //JUST EXITING FOR RIGHT NOW BUT WHEN WE HAVE A GAME ACTION SCREEN TO SWITCH TO, 
-                    //THAT WILL BE SWITCHED HERE
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
                 }
-            }
 
+                System.out.println("\nCountdown finished!"); //SWITCH TO GAME ACTION SCREEN 
+            }).start();
+        }
+    }
+};
+       
                 @Override
                 public void keyReleased(KeyEvent e) {}
 
