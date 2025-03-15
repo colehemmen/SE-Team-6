@@ -9,12 +9,24 @@ public class Player {
 
     private static Connection conn;
 
-    public static void writeToScreen(TextField[][] textFields, String codeName) {
-        for(int i = 0; i < 15; i++) {
-            for(int j = 0; j < 2; j++) {
-                if(textFields[i][j].getText().equals("")) {
-                    textFields[i][j].setText(codeName);
-                    return;
+    public static void writeToScreen(TextField[][] textFields, String codeName, int equipmentID) {
+        if(equipmentID % 2 == 1) {
+            for(int i = 0; i < 15; i++) {
+                for(int j = 0; j < 1; j++) {
+                    if(textFields[i][j].getText().equals("")) {
+                        textFields[i][j].setText(codeName);
+                        return;
+                    }
+                }
+            }
+        }
+        else {
+            for(int i = 0; i < 15; i++) {
+                for(int j = 1; j < 2; j++) {
+                    if(textFields[i][j].getText().equals("")) {
+                        textFields[i][j].setText(codeName);
+                        return;
+                    }
                 }
             }
         }
@@ -25,6 +37,8 @@ public class Player {
         String url = "jdbc:postgresql://localhost:5432/photon";
         String user = "student";
         String password = "student";
+
+        String codeName;
 
         try {
             // Connect to PostgreSQL
@@ -56,8 +70,8 @@ public class Player {
         frame.setBackground(Color.BLACK);
         frame.setLayout(new GridLayout(17, 4)); //SET ROWS TO 17 IF NOT USING TERMINAL LABEL
 
-        Label left = new Label("BLUE TEAM", Label.CENTER);
-        left.setBackground(Color.CYAN);
+        Label left = new Label("GREEN TEAM", Label.CENTER);
+        left.setBackground(Color.GREEN);
         Label right = new Label("RED TEAM", Label.CENTER);
         right.setBackground(Color.PINK);
 
@@ -107,29 +121,17 @@ public class Player {
 
         frame.add(f5);
         frame.add(f12);
-        
-KeyListener f5Pressed = new KeyAdapter() {
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_F5) {
-				System.out.println("\nCountdown Started!");  
-            new Thread(() -> { 
-                for (int i =30; i>=0; i--) {
-                    System.out.println("Time left: " + i + " seconds");
 
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
+        KeyListener f5Pressed = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    frame.dispose();
+                    System.exit(0); //JUST EXITING FOR RIGHT NOW BUT WHEN WE HAVE A GAME ACTION SCREEN TO SWITCH TO, 
+                    //THAT WILL BE SWITCHED HERE
                 }
+            }
 
-                System.out.println("\nCountdown finished!"); //SWITCH TO GAME ACTION SCREEN 
-            }).start();
-        }
-    }
-};
-       
                 @Override
                 public void keyReleased(KeyEvent e) {}
 
@@ -183,11 +185,12 @@ KeyListener f5Pressed = new KeyAdapter() {
 
                     if (rs.next()) {
                         System.out.println("Player found: Welcome back " + rs.getString("codename"));
-                        writeToScreen(textFields, rs.getString("codename"));
+                        codeName = rs.getString("codename");
+                        //writeToScreen(textFields, rs.getString("codename"));
                     } else {
                         System.out.println("Player ID not found. Welcome first-time player! Please enter a codename:");
-                        String codeName = scan.nextLine();
-                        writeToScreen(textFields, codeName);
+                        codeName = scan.nextLine();
+                        //writeToScreen(textFields, codeName);
 
                         try (PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)")) {
                             insertStmt.setInt(1, playerID);
@@ -199,8 +202,14 @@ KeyListener f5Pressed = new KeyAdapter() {
                     rs.close();
                 }
 
-                System.out.println("Please enter your equipment ID:");
-                int equipmentID = scan.nextInt(); //THIS IS WHERE A FUNCTION WILL BE CALLED TO BROADCAST EQUIPMENT ID
+                System.out.println("Please enter your equipment ID: (#1 - 30)"); //odd = red team, even = green team
+                int equipmentID = scan.nextInt();
+                while((equipmentID < 1) || (equipmentID > 30)) {
+                    System.out.println("ERROR   :   Please enter a valid equipment ID (#1 - 30)");
+                    equipmentID = scan.nextInt();
+                }
+                writeToScreen(textFields, codeName, equipmentID);
+                //THIS IS WHERE A FUNCTION WILL BE CALLED TO BROADCAST EQUIPMENT ID
                 scan.nextLine(); // Consume newline
             }
 
