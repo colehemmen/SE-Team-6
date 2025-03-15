@@ -113,14 +113,14 @@ public class PlayerEntryScreen {
                 JOptionPane.showMessageDialog(null, "Welcome back " + codename);
                 writeToScreen(codename);
             } else {
-                String codeName = JOptionPane.showInputDialog("New player! Enter your codename:");
-                if (codeName != null && !codeName.trim().isEmpty()) {
+                String newCodename = JOptionPane.showInputDialog("New player! Enter your codename:");
+                if (newCodename != null && !newCodename.trim().isEmpty()) {
                     PreparedStatement insertStmt = conn.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)");
                     insertStmt.setInt(1, playerID);
-                    insertStmt.setString(2, codeName);
+                    insertStmt.setString(2, newCodename);
                     insertStmt.executeUpdate();
                     JOptionPane.showMessageDialog(null, "Codename saved successfully!");
-                    writeToScreen(codeName);
+                    writeToScreen(newCodename);
                 }
             }
         } catch (SQLException e) {
@@ -141,11 +141,11 @@ public class PlayerEntryScreen {
         }
     }
 
-    private static void writeToScreen(String codeName) {
+    private static void writeToScreen(String newCodename) {
         for (int i = 0; i < 15; i++) {
             for (int j = 0; j < 2; j++) {
                 if (textFields[i][j].getText().isEmpty()) {
-                    textFields[i][j].setText(codeName);
+                    textFields[i][j].setText(newCodename);
                     return;
                 }
             }
