@@ -8,14 +8,13 @@ Move the project to the VM. Either drag / drop the project from your local machi
 Install the required packages:
 ```bat
 sudo apt update
-
-sudo apt install default-jdk openjdk-11-jdk postgresql postgresql-client libpostgresql-jdbc-java libpostgresql-jdbc-java-doc
+sudo apt install default-jdk openjdk-17-jdk postgresql postgresql-client libpostgresql-jdbc-java libpostgresql-jdbc-java-doc
 ```
 
 Update the enviornment variables:
 ```env
-JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
-CLASSPATH=".:/usr/share/java/mysql.jar:/usr/share/java/postgresql-jdbc4.jar"
+JAVA_HOME="/usr/lib/jvm/java-17-openjdk-arm64"
+CLASSPATH=".:/usr/share/java/posgresql-jdbc4.jar"
 ```
 
 Note: Double check that Java was installed to the location above. If not, reinstall in the correct location.
