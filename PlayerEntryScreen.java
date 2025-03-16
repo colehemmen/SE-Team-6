@@ -71,16 +71,37 @@ public class PlayerEntryScreen {
         });
 
         // Key Bindings for F5 (Exit) and F12 (Clear)
-        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "exit");
-        frame.getRootPane().getActionMap()
-            .put("exit", new AbstractAction() {
+       frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+    .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "exit");
+
+frame.getRootPane().getActionMap()
+    .put("exit", new AbstractAction() {
+        private Timer countdownTimer;
+        private int timeLeft = 30; // Start countdown from 30 seconds
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Create a new timer that fires every second
+            countdownTimer = new Timer(1000, new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent e) {
-                    frame.dispose();
-                    System.exit(0);
+                public void actionPerformed(ActionEvent evt) {
+                    if (timeLeft > 0) {
+                        System.out.println("Exiting in " + timeLeft + " seconds...");
+                        timeLeft--;
+                    } else {
+                        countdownTimer.stop(); // Stop the timer
+                        System.out.println("Exiting now.");
+                        frame.dispose();
+                        System.exit(0);
+                    }
                 }
             });
+
+            countdownTimer.start(); // Start the countdown
+            JOptionPane.showMessageDialog(frame, "Exit countdown started! The program will close in 30 seconds.", 
+                                          "Exit Timer", JOptionPane.INFORMATION_MESSAGE);
+        }
+    });
 
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "clear");
