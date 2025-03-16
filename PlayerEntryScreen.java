@@ -77,11 +77,10 @@ public class PlayerEntryScreen {
 frame.getRootPane().getActionMap()
     .put("exit", new AbstractAction() {
         private Timer countdownTimer;
-        private int timeLeft = 30; // Start countdown from 30 seconds
+        private int timeLeft = 30; // 30 sec
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // Create a new timer that fires every second
             countdownTimer = new Timer(1000, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent evt) {
