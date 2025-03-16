@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class PlayerEntryScreen {
     private static JTextField[][] textFields = new JTextField[15][2];
@@ -70,37 +71,34 @@ public class PlayerEntryScreen {
             processPlayerID(playerID);
         });
 
-        // Key Bindings for F5 (Exit) and F12 (Clear)
-       frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-    .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "exit");
+        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "startCountdown");
+        frame.getRootPane().getActionMap()
+            .put("startCountdown", new AbstractAction() {
+                private Timer countdownTimer;
+                private int timeLeft = 30;
 
-frame.getRootPane().getActionMap()
-    .put("exit", new AbstractAction() {
-        private Timer countdownTimer;
-        private int timeLeft = 30; // 30 sec
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            countdownTimer = new Timer(1000, new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent evt) {
-                    if (timeLeft > 0) {
-                        System.out.println("Exiting in " + timeLeft + " seconds...");
-                        timeLeft--;
-                    } else {
-                        countdownTimer.stop(); // Stop the timer
-                        System.out.println("Exiting now.");
-                        frame.dispose();
-                        System.exit(0);
-                    }
+                public void actionPerformed(ActionEvent e) {
+                    countdownTimer = new Timer(1000, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent evt) {
+                            if (timeLeft > 0) {
+                                System.out.println("Starting game action display in " + timeLeft + " seconds...");
+                                timeLeft--;
+                            } else {
+                                countdownTimer.stop();
+                                frame.dispose(); // Close player entry screen
+                                new GameActionDisplay(textFields); // Show game action display
+                            }
+                        }
+                    });
+
+                    countdownTimer.start();
+                    JOptionPane.showMessageDialog(frame, "Game action display will start in 30 seconds!", 
+                                                  "Countdown Timer", JOptionPane.INFORMATION_MESSAGE);
                 }
             });
-
-            countdownTimer.start(); // Start the countdown
-            JOptionPane.showMessageDialog(frame, "Exit countdown started! The program will close in 30 seconds.", 
-                                          "Exit Timer", JOptionPane.INFORMATION_MESSAGE);
-        }
-    });
 
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "clear");
@@ -173,3 +171,77 @@ frame.getRootPane().getActionMap()
     }
 }
 
+class GameActionDisplay {
+    private JTextField[][] textFields;
+
+    public GameActionDisplay(JTextField[][] textFields) {
+        this.textFields = textFields;
+        createGameScreen();
+    }
+
+    private void createGameScreen() {
+        JFrame gameFrame = new JFrame("Game Action Display");
+        gameFrame.setSize(600, 400);
+        gameFrame.setLayout(new GridLayout(2, 1));
+
+        JPanel topPanel = new JPanel(new GridLayout(1, 2));
+        
+        JPanel greenPanel = new JPanel(new BorderLayout());
+        greenPanel.setBorder(new LineBorder(Color.GRAY, 2));
+        greenPanel.setBackground(Color.GREEN);
+        JLabel greenLabel = new JLabel("GREEN TEAM", SwingConstants.CENTER);
+        greenLabel.setFont(new Font("Arial", Font.BOLD, 25));
+        greenLabel.setForeground(Color.GREEN);
+        JPanel greenLabelPanel = new JPanel();
+        greenLabelPanel.setBackground(Color.BLACK);
+        greenLabelPanel.add(greenLabel);
+        greenPanel.add(greenLabelPanel, BorderLayout.NORTH);
+        JPanel greenListPanel = new JPanel(new GridLayout(15, 1));
+        for (int i = 0; i < 15; i++) {
+            String playerText = getPlayerText(textFields[i][0]);
+            if (!playerText.isEmpty()) {
+                JLabel playerLabel = new JLabel(playerText, SwingConstants.CENTER);
+                playerLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+                greenListPanel.add(playerLabel);
+            }
+        }
+        greenPanel.add(greenListPanel, BorderLayout.CENTER);
+        
+        JPanel redPanel = new JPanel(new BorderLayout());
+        redPanel.setBorder(new LineBorder(Color.GRAY, 2));
+        redPanel.setBackground(Color.PINK);
+        JLabel redLabel = new JLabel("RED TEAM", SwingConstants.CENTER);
+        redLabel.setFont(new Font("Arial", Font.BOLD, 25));
+        redLabel.setForeground(Color.RED);
+        JPanel redLabelPanel = new JPanel();
+        redLabelPanel.setBackground(Color.BLACK);
+        redLabelPanel.add(redLabel);
+        redPanel.add(redLabelPanel, BorderLayout.NORTH);
+        JPanel redListPanel = new JPanel(new GridLayout(15, 1));
+        for (int i = 0; i < 15; i++) {
+            String playerText = getPlayerText(textFields[i][1]);
+            if (!playerText.isEmpty()) {
+                JLabel playerLabel = new JLabel(playerText, SwingConstants.CENTER);
+                playerLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+                redListPanel.add(playerLabel);
+            }
+        }
+        redPanel.add(redListPanel, BorderLayout.CENTER);
+        
+        topPanel.add(greenPanel);
+        topPanel.add(redPanel);
+        
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.BLACK);
+        bottomPanel.setBorder(new LineBorder(Color.GRAY, 2));
+        
+        gameFrame.add(topPanel);
+        gameFrame.add(bottomPanel);
+        gameFrame.setVisible(true);
+    }
+
+    private String getPlayerText(JTextField field) {
+        String name = field.getText().trim();
+        return name.isEmpty() ? "" : name + " - 0 pts";
+    }
+}
