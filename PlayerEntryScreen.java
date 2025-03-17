@@ -34,7 +34,7 @@ public class PlayerEntryScreen {
     private static void createAndShowGUI() {
         JFrame frame = new JFrame("Player Entry Screen");
         frame.setSize(400, 600);
-        frame.setLayout(new GridLayout(17, 2));
+        frame.setLayout(new GridLayout(19, 2));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JLabel left = new JLabel("GREEN TEAM", SwingConstants.CENTER);
@@ -55,11 +55,15 @@ public class PlayerEntryScreen {
             }
         }
 
-        JButton submitButton = new JButton("Enter Player ID");
         JTextField playerIDField = new JTextField();
+        JButton submitButton = new JButton("Enter Player ID");
+        JButton startCountdownButton = new JButton("Start Countdown (F5)");
+        JButton clearFieldsButton = new JButton("Clear Fields (F12)");  
 
         frame.add(playerIDField);
         frame.add(submitButton);
+        frame.add(startCountdownButton);
+        frame.add(clearFieldsButton);  
 
         submitButton.addActionListener(e -> {
             String playerIDText = playerIDField.getText().trim();
@@ -71,32 +75,16 @@ public class PlayerEntryScreen {
             processPlayerID(playerID);
         });
 
+        startCountdownButton.addActionListener(e -> startCountdown(frame));
+        clearFieldsButton.addActionListener(e -> clearTextFields());  
+
         frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "startCountdown");
         frame.getRootPane().getActionMap()
             .put("startCountdown", new AbstractAction() {
-                private Timer countdownTimer;
-                private int timeLeft = 30;
-
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    countdownTimer = new Timer(1000, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent evt) {
-                            if (timeLeft > 0) {
-                                System.out.println("Starting game action display in " + timeLeft + " seconds...");
-                                timeLeft--;
-                            } else {
-                                countdownTimer.stop();
-                                frame.dispose(); // Close player entry screen
-                                new GameActionDisplay(textFields); // Show game action display
-                            }
-                        }
-                    });
-
-                    countdownTimer.start();
-                    JOptionPane.showMessageDialog(frame, "Game action display will start in 30 seconds!", 
-                                                  "Countdown Timer", JOptionPane.INFORMATION_MESSAGE);
+                    startCountdown(frame);
                 }
             });
 
@@ -106,16 +94,42 @@ public class PlayerEntryScreen {
             .put("clear", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    for (int i = 0; i < 15; i++) {
-                        for (int j = 0; j < 2; j++) {
-                            textFields[i][j].setText("");
-                        }
-                    }
+                    clearTextFields();
                 }
             });
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private static void startCountdown(JFrame frame) {
+        Timer countdownTimer = new Timer(1000, new ActionListener() {
+            private int timeLeft = 30;
+
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                if (timeLeft > 0) {
+                    System.out.println("Starting game action display in " + timeLeft + " seconds...");
+                    timeLeft--;
+                } else {
+                    ((Timer) evt.getSource()).stop();
+                    frame.dispose();
+                    new GameActionDisplay(textFields);
+                }
+            }
+        });
+
+        countdownTimer.start();
+        JOptionPane.showMessageDialog(frame, "Game action display will start in 30 seconds!", 
+                                      "Countdown Timer", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private static void clearTextFields() {
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 2; j++) {
+                textFields[i][j].setText("");
+            }
+        }
     }
 
     private static void processPlayerID(int playerID) {
