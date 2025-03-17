@@ -20,7 +20,7 @@ CLASSPATH=".:/usr/share/java/posgresql-jdbc4.jar"
 Note: Double check that Java was installed to the location above. If not, reinstall in the correct location.
 
 ## Running the Program
-Navigate to the project directory, and execute the following to compile the program:
+Navigate to the project's `src` directory, and execute the following to compile the program:
 ```bat
 javac PlayerEntryScreen.java
 ```

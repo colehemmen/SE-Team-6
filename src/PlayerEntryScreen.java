@@ -167,12 +167,8 @@ public class PlayerEntryScreen {
 
                 String newEquipmentId = JOptionPane.showInputDialog("Enter your equipment id:");
                 if (newEquipmentId != null && !newEquipmentId.trim().isEmpty()) {
-                    System.out.println("before");
                     udpClient.transmitEquipmentCode(newEquipmentId);
-                    System.out.println("after");
                 }
-
-                System.out.println("afterout");
 
                 JOptionPane.showMessageDialog(null, "New user saved successfully!");
                 writeToScreen(newCodename);
