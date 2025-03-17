@@ -12,13 +12,12 @@ import javax.swing.border.LineBorder;
 
 public class PlayerEntryScreen {
     private static JTextField[][] textFields = new JTextField[15][2];
-    private static UDPServer udpServer;
     private static UDPClient udpClient;
 
     public static void main(String[] args) throws SocketException, UnknownHostException {
         SwingUtilities.invokeLater(PlayerEntryScreen::showSplashScreen);
 
-        udpServer = new UDPServer(7500); // TODO: change to 7501 next sprint
+        UDPServer udpServer = new UDPServer(7500); // TODO: change to 7501 next sprint
         udpClient = new UDPClient(7500);
 
         udpServer.start();
