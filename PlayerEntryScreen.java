@@ -1,14 +1,27 @@
+import udp.UDPClient;
+import udp.UDPServer;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
 public class PlayerEntryScreen {
     private static JTextField[][] textFields = new JTextField[15][2];
+    private static UDPServer udpServer;
+    private static UDPClient udpClient;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SocketException, UnknownHostException {
         SwingUtilities.invokeLater(PlayerEntryScreen::showSplashScreen);
+
+        udpServer = new UDPServer(7500); // TODO: change to 7501 next sprint
+        udpClient = new UDPClient(7500);
+
+        udpServer.start();
     }
 
     private static void showSplashScreen() {
@@ -151,12 +164,24 @@ public class PlayerEntryScreen {
                     insertStmt.setInt(1, playerID);
                     insertStmt.setString(2, newCodename);
                     insertStmt.executeUpdate();
-                    JOptionPane.showMessageDialog(null, "Codename saved successfully!");
-                    writeToScreen(newCodename);
                 }
+
+                String newEquipmentId = JOptionPane.showInputDialog("Enter your equipment id:");
+                if (newEquipmentId != null && !newEquipmentId.trim().isEmpty()) {
+                    System.out.println("before");
+                    udpClient.transmitEquipmentCode(newEquipmentId);
+                    System.out.println("after");
+                }
+
+                System.out.println("afterout");
+
+                JOptionPane.showMessageDialog(null, "New user saved successfully!");
+                writeToScreen(newCodename);
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
