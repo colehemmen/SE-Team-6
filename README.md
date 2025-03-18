@@ -22,7 +22,7 @@ Note: Double check that Java was installed to the location above. If not, reinst
 ## Running the Program
 Navigate to the project's `src` directory, and execute the following to compile the program:
 ```bat
-javac PlayerEntryScreen.java
+javac Main.java
 ```
 
 To run the program, execute the following:
