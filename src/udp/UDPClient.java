@@ -9,8 +9,6 @@ public class UDPClient {
     private final InetAddress address;
     private final Integer port;
 
-    private byte[] buf = new byte[256];
-
     public UDPClient(Integer port) throws UnknownHostException, SocketException {
         socket = new DatagramSocket();
         address = InetAddress.getByName("localhost");
@@ -18,17 +16,15 @@ public class UDPClient {
         this.port = port;
     }
 
-    public String transmitEquipmentCode(String code) throws IOException {
-        buf = code.getBytes(StandardCharsets.UTF_8);
+    public void transmitEquipmentCode(String code) {
+        try {
+            byte[] buf = code.getBytes(StandardCharsets.UTF_8);
 
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-        socket.send(packet);
-
-        // TODO: Figure out what we need to do here
-        packet = new DatagramPacket(buf,buf.length);
-        socket.receive(packet);
-
-        return new String(packet.getData(), 0, packet.getLength());
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(packet);
+        } catch (IOException e) {
+            System.out.printf("Failed to transmit equipment code %s.\n\n%s", code, e);
+        }
     }
 
     public void close() {

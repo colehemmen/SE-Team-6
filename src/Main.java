@@ -1,38 +1,25 @@
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import database.DatabaseConnection;
+import screens.Splash;
 import udp.UDPClient;
-import udp.UDPServer;
 
-import java.io.IOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import javax.swing.*;
 
-import static org.junit.Assert.*;
-
+@SuppressWarnings("InstantiationOfUtilityClass")
 public class Main {
-    UDPClient client;
-    UDPServer server;
 
-    @Before
-    public void setup() throws IOException {
-        Integer port = 1234;
+    private static final JTextField[][] textFields = new JTextField[15][2];
 
-        server = new UDPServer(port);
-        server.start();
+    public static void main(String[] args) throws SocketException, UnknownHostException {
+        //UDPServer udpServer = new UDPServer(7501); // TODO: uncomment this when we know what to do w/ the server next sprint
+        //udpServer.start();
+        DatabaseConnection database = new DatabaseConnection();
+        UDPClient udpClient = new UDPClient(7500);
 
-        client = new UDPClient(port);
-    }
-
-    @Test
-    public void testTrasnmitEquipmentCodeEchosCode() throws IOException {
-        String code = client.transmitEquipmentCode("123456");
-        assertEquals("123456", code);
-        code = client.transmitEquipmentCode("123");
-        assertNotEquals("hello server", code);
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        client.transmitEquipmentCode("bye");
-        client.close();
+        SwingUtilities.invokeLater(() -> {
+            new Splash(database, udpClient, textFields);
+            Splash.run();
+        });
     }
 }
