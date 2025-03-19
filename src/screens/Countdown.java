@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 
 public class Countdown {
 
-    public static void run(JFrame frame, JTextField[][] textFields) {
+    public static void run(JTextField[][] textFields) {
         Timer countdownTimer = new Timer(1000, new ActionListener() {
             private int timeLeft = 30;
 
@@ -17,14 +17,13 @@ public class Countdown {
                     timeLeft--;
                 } else {
                     ((Timer) evt.getSource()).stop();
-                    frame.dispose();
                     new GameAction(textFields);
                 }
             }
         });
 
         countdownTimer.start();
-        JOptionPane.showMessageDialog(frame, "Game action display will start in 30 seconds!",
-                "Countdown Timer", JOptionPane.INFORMATION_MESSAGE);
+//        JOptionPane.showMessageDialog(frame, "Game action display will start in 30 seconds!",
+//                "Countdown Timer", JOptionPane.INFORMATION_MESSAGE);
     }
 }

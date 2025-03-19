@@ -23,11 +23,11 @@ public class PlayerEntry {
         textFields = tfs;
     }
 
-    public void run() {
-        JFrame frame = new JFrame("Player Entry Screen");
-        frame.setSize(400, 600);
-        frame.setLayout(new GridLayout(19, 2));
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public static JPanel run(CardLayout cardLayout, JPanel cardPanel) {
+        JPanel panel = new JPanel();
+        panel.setPreferredSize(new Dimension(600, 800));
+        panel.setLayout(new GridLayout(19, 2));
+        panel.setBackground(Color.WHITE);
 
         JLabel left = new JLabel("GREEN TEAM", SwingConstants.CENTER);
         left.setOpaque(true);
@@ -36,62 +36,72 @@ public class PlayerEntry {
         right.setOpaque(true);
         right.setBackground(Color.PINK);
 
-        frame.add(left);
-        frame.add(right);
+        panel.add(left);
+        panel.add(right);
 
         for (int i = 0; i < 15; i++) {
             for (int j = 0; j < 2; j++) {
-                textFields[i][j] = new JTextField();
-                textFields[i][j].setBackground(j == 0 ? Color.GREEN : Color.PINK);
-                frame.add(textFields[i][j]);
+                JTextField field = new JTextField();
+                field.setEditable(false);
+                field.setOpaque(true);
+                field.setBackground(j == 0 ? Color.GREEN : Color.PINK);
+
+                textFields[i][j] = field;
+                panel.add(textFields[i][j]);
             }
         }
 
         JTextField playerIDField = new JTextField();
+        playerIDField.grabFocus();
+
         JButton submitButton = new JButton("Enter Player ID");
         JButton startCountdownButton = new JButton("Start Countdown (F5)");
         JButton clearFieldsButton = new JButton("Clear Fields (F12)");
 
-        frame.add(playerIDField);
-        frame.add(submitButton);
-        frame.add(startCountdownButton);
-        frame.add(clearFieldsButton);
+        panel.add(playerIDField);
+        panel.add(submitButton);
+        panel.add(startCountdownButton);
+        panel.add(clearFieldsButton);
+
+        registerEvents(startCountdownButton, clearFieldsButton, submitButton, playerIDField, cardPanel);
+
+        return panel;
+    }
+
+    private static void registerEvents(JButton startCountdownButton, JButton clearFieldsButton, JButton submitButton, JTextField playerIDField, JPanel cardPanel) {
+        startCountdownButton.addActionListener(e -> Countdown.run(textFields));
+        clearFieldsButton.addActionListener(e -> Util.clearTextFields(textFields));
 
         submitButton.addActionListener(e -> {
             String playerIDText = playerIDField.getText().trim();
             if (!playerIDText.matches("\\d+")) {
-                JOptionPane.showMessageDialog(frame, "Invalid Player ID! Must be a number.");
+                JOptionPane.showMessageDialog(cardPanel, "Invalid Player ID! Must be a number.");
                 return;
             }
             int playerID = Integer.parseInt(playerIDText);
             processPlayerID(playerID);
         });
 
-        startCountdownButton.addActionListener(e -> Countdown.run(frame, textFields));
-        clearFieldsButton.addActionListener(e -> Util.clearTextFields(textFields));
 
-        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        cardPanel.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "startCountdown");
-        frame.getRootPane().getActionMap()
+        cardPanel.getRootPane().getActionMap()
                 .put("startCountdown", new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        Countdown.run(frame, textFields);
+                        Countdown.run(textFields);
                     }
                 });
 
-        frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        cardPanel.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "clear");
-        frame.getRootPane().getActionMap()
+        cardPanel.getRootPane().getActionMap()
                 .put("clear", new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         Util.clearTextFields(textFields);
                     }
                 });
-
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
     }
 
     private static void processPlayerID(int playerID) {
