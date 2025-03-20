@@ -5,17 +5,17 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 
 public class GameAction {
-    private final JTextField[][] textFields;
+    private static JTextField[][] textFields;
 
-    public GameAction(JTextField[][] textFields) {
-        this.textFields = textFields;
-        createGameScreen();
+    public GameAction(JTextField[][] tfs) {
+        textFields = tfs;
     }
 
-    private void createGameScreen() {
-        JFrame gameFrame = new JFrame("Game Action Display");
-        gameFrame.setSize(600, 400);
-        gameFrame.setLayout(new GridLayout(2, 1));
+    public static JPanel init() {
+        JPanel panel = new JPanel();
+
+        panel.setSize(600, 400);
+        panel.setLayout(new GridLayout(2, 1));
 
         JPanel topPanel = new JPanel(new GridLayout(1, 2));
 
@@ -68,12 +68,13 @@ public class GameAction {
         bottomPanel.setBackground(Color.BLACK);
         bottomPanel.setBorder(new LineBorder(Color.GRAY, 2));
 
-        gameFrame.add(topPanel);
-        gameFrame.add(bottomPanel);
-        gameFrame.setVisible(true);
+        panel.add(topPanel);
+        panel.add(bottomPanel);
+
+        return topPanel;
     }
 
-    private String getPlayerText(JTextField field) {
+    private static String getPlayerText(JTextField field) {
         String name = field.getText().trim();
         return name.isEmpty() ? "" : name + " - 0 pts";
     }

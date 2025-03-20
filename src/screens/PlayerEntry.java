@@ -23,7 +23,7 @@ public class PlayerEntry {
         textFields = tfs;
     }
 
-    public static JPanel run(CardLayout cardLayout, JPanel cardPanel) {
+    public static JPanel init(CardLayout cardLayout, JPanel cardPanel) {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(600, 800));
         panel.setLayout(new GridLayout(19, 2));
@@ -63,13 +63,13 @@ public class PlayerEntry {
         panel.add(startCountdownButton);
         panel.add(clearFieldsButton);
 
-        registerEvents(startCountdownButton, clearFieldsButton, submitButton, playerIDField, cardPanel);
+        registerEvents(startCountdownButton, clearFieldsButton, submitButton, playerIDField, cardLayout, cardPanel);
 
         return panel;
     }
 
-    private static void registerEvents(JButton startCountdownButton, JButton clearFieldsButton, JButton submitButton, JTextField playerIDField, JPanel cardPanel) {
-        startCountdownButton.addActionListener(e -> Countdown.run(textFields));
+    private static void registerEvents(JButton startCountdownButton, JButton clearFieldsButton, JButton submitButton, JTextField playerIDField, CardLayout cardLayout, JPanel cardPanel) {
+        startCountdownButton.addActionListener(e -> startCountdown(cardLayout, cardPanel));
         clearFieldsButton.addActionListener(e -> Util.clearTextFields(textFields));
 
         submitButton.addActionListener(e -> {
@@ -82,14 +82,13 @@ public class PlayerEntry {
             processPlayerID(playerID);
         });
 
-
         cardPanel.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "startCountdown");
         cardPanel.getRootPane().getActionMap()
                 .put("startCountdown", new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        Countdown.run(textFields);
+                        startCountdown(cardLayout, cardPanel);
                     }
                 });
 
@@ -124,5 +123,11 @@ public class PlayerEntry {
             JOptionPane.showMessageDialog(null, "New user saved successfully!");
             Util.writeToScreen(textFields, newCodename);
         }
+    }
+
+    public static void startCountdown(CardLayout cardLayout, JPanel cardPanel) {
+        cardLayout.show(cardPanel, "countdown");
+
+        SwingUtilities.invokeLater(() -> Countdown.run(cardLayout, cardPanel));
     }
 }

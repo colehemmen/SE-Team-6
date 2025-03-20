@@ -1,8 +1,5 @@
 package screens;
 
-import database.DatabaseConnection;
-import udp.UDPClient;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
