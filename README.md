@@ -27,7 +27,7 @@ javac Main.java
 
 To run the program, execute the following:
 ```bat
-java -cp .:/usr/share/java/postgresql-jdbc4.jar PlayerEntryScreen
+java -cp .:/usr/share/java/postgresql-jdbc4.jar Main
 ```
 
 ## Project Members:
