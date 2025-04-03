@@ -80,8 +80,6 @@ public class Main {
         frame.getContentPane().setBackground(Color.BLACK);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setLocationRelativeTo(null);
-        frame.setUndecorated(true);
-
     }
 
 }
