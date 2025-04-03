@@ -43,7 +43,7 @@ public class Countdown {
     }
 
     private static void paintImage(Integer id) {
-        ImageIcon countdownImage = new ImageIcon(Objects.requireNonNull(Countdown.class.getResource(String.format("/images/countdown/%s.png", id))));
+        ImageIcon countdownImage = new ImageIcon(Objects.requireNonNull(Countdown.class.getClassLoader().getResource(String.format("images/countdown/%s.png", id))));
         JLabel label = new JLabel(countdownImage, SwingConstants.CENTER);
 
         panel.setSize(countdownImage.getIconWidth(), countdownImage.getIconHeight());
