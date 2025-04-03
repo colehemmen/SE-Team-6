@@ -10,7 +10,7 @@ public class Splash {
         panel.setPreferredSize(new Dimension(600, 300));
         panel.setBackground(Color.BLACK);
 
-        ImageIcon photon = new ImageIcon(Objects.requireNonNull(Splash.class.getResource("/images/splash.png")));
+        ImageIcon photon = new ImageIcon(Objects.requireNonNull(Splash.class.getClassLoader().getResource("images/splash.png")));
         JLabel splashLabel = new JLabel(photon, SwingConstants.CENTER);
 
         panel.setSize(photon.getIconWidth(), photon.getIconHeight());
