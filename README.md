@@ -22,12 +22,13 @@ Note: Double check that Java was installed to the location above. If not, reinst
 ## Running the Program
 Navigate to the project's `src` directory, and execute the following to compile the program:
 ```bat
-javac Main.java
+javac -d out -sourcepath src src/Main.java src/**/*.java
+cp -r src/images out/
 ```
 
 To run the program, execute the following:
 ```bat
-java -cp .:/usr/share/java/postgresql-jdbc4.jar Main
+java -cp "out:.:/usr/share/java/postgresql-jdbc4.jar" Main
 ```
 
 ## Project Members:
