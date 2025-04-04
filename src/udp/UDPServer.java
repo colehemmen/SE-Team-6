@@ -11,7 +11,7 @@ public class UDPServer extends Thread {
     private final DatagramSocket socket;
     private final byte[] buf = new byte[256];
 
-    public UDPServer(Integer port)  throws SocketException {
+    public UDPServer(Integer port) throws SocketException {
         socket = new DatagramSocket(port);
     }
 

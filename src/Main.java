@@ -1,38 +1,85 @@
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import database.DatabaseConnection;
+import screens.Countdown;
+import screens.GameAction;
+import screens.PlayerEntry;
+import screens.Splash;
 import udp.UDPClient;
-import udp.UDPServer;
 
-import java.io.IOException;
+import java.awt.*;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import javax.swing.*;
 
-import static org.junit.Assert.*;
-
+@SuppressWarnings("InstantiationOfUtilityClass")
 public class Main {
-    UDPClient client;
-    UDPServer server;
 
-    @Before
-    public void setup() throws IOException {
-        Integer port = 1234;
+    private static JFrame frame;
+    private static final CardLayout cardLayout = new CardLayout();
+    private static final JPanel cardPanel = new JPanel(cardLayout);
+    private static final JTextField[][] textFields = new JTextField[15][2];
 
-        server = new UDPServer(port);
-        server.start();
+    public static void main(String[] args) throws SocketException, UnknownHostException {
+        initializeFrame();
+        initializeScreens();
 
-        client = new UDPClient(port);
+        buildAndShowInitialScreens();
+
+        startGame();
     }
 
-    @Test
-    public void testTrasnmitEquipmentCodeEchosCode() throws IOException {
-        String code = client.transmitEquipmentCode("123456");
-        assertEquals("123456", code);
-        code = client.transmitEquipmentCode("123");
-        assertNotEquals("hello server", code);
+    private static void startGame() {
+        // Start the initial frame with the splash screen
+        SwingUtilities.invokeLater(Main::buildAndShowInitialScreens);
     }
 
-    @After
-    public void tearDown() throws IOException {
-        client.transmitEquipmentCode("bye");
-        client.close();
+    private static void buildAndShowInitialScreens() {
+
+        // Make a wrapper so we can set the dimensions of the screen
+        JPanel playerEntryWrapper = new JPanel();
+        playerEntryWrapper.setPreferredSize(new Dimension(600, 800));
+        playerEntryWrapper.setBackground(Color.WHITE);
+
+        frame.add(cardPanel, BorderLayout.CENTER);
+        frame.setVisible(true);
+
+        JPanel splashPanel = Splash.run();
+        JPanel playerEntryPanel = PlayerEntry.init(cardLayout, cardPanel);
+        JPanel gameActionPanel = GameAction.init();
+        JPanel countdownPanel = Countdown.init();
+
+        playerEntryWrapper.add(playerEntryPanel, BorderLayout.CENTER);
+
+        cardPanel.add(splashPanel, "splash");
+        cardPanel.add(playerEntryWrapper, "player-entry");
+        cardPanel.add(gameActionPanel, "game-action");
+        cardPanel.add(countdownPanel, "countdown");
+
+        //Countdown.run(textFields);
+        cardLayout.show(cardPanel, "splash");
+
+        new Timer(3000, e -> {
+            ((Timer) e.getSource()).stop();
+
+            cardLayout.show(cardPanel, "player-entry");
+        }).start();
     }
+
+    private static void initializeScreens() throws SocketException, UnknownHostException {
+        //UDPServer udpServer = new UDPServer(7501); // TODO: uncomment this when we know what to do w/ the server next sprint
+        //udpServer.start();
+        DatabaseConnection database = new DatabaseConnection();
+        UDPClient udpClient = new UDPClient(7500);
+
+        new PlayerEntry(database, udpClient, textFields);
+        new GameAction(textFields);
+    }
+
+    private static void initializeFrame() {
+        frame = new JFrame("Photon Game");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setBackground(Color.BLACK);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setLocationRelativeTo(null);
+    }
+
 }

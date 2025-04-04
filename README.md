@@ -20,14 +20,15 @@ CLASSPATH=".:/usr/share/java/posgresql-jdbc4.jar"
 Note: Double check that Java was installed to the location above. If not, reinstall in the correct location.
 
 ## Running the Program
-Navigate to the project's `src` directory, and execute the following to compile the program:
+Navigate to the project's directory, and execute the following to compile the program:
 ```bat
-javac PlayerEntryScreen.java
+javac -d out -sourcepath src src/Main.java src/**/*.java
+cp -r src/images out/
 ```
 
 To run the program, execute the following:
 ```bat
-java -cp .:/usr/share/java/postgresql-jdbc4.jar PlayerEntryScreen
+java -cp "out:.:/usr/share/java/postgresql-jdbc4.jar" Main
 ```
 
 ## Project Members:
