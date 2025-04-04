@@ -108,7 +108,14 @@ public class PlayerEntry {
 
         if(existingCodename != null) {
             JOptionPane.showMessageDialog(null, "Welcome back " + existingCodename);
+
+            String newEquipmentId = JOptionPane.showInputDialog("Enter your equipment id:");
+            if (Util.isValidInput(newEquipmentId)) {
+                udpClient.transmitEquipmentCode(newEquipmentId);
+            }
+
             Util.writeToScreen(textFields, existingCodename);
+
         } else {
             String newCodename = JOptionPane.showInputDialog("New player! Enter your codename:");
             if (Util.isValidInput(newCodename)) {
