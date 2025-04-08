@@ -13,7 +13,7 @@ sudo apt install default-jdk openjdk-17-jdk postgresql postgresql-client libpost
 
 Update the enviornment variables:
 ```env
-JAVA_HOME="/usr/lib/jvm/java-17-openjdk-arm64"
+JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 CLASSPATH=".:/usr/share/java/posgresql-jdbc4.jar"
 ```
 
@@ -22,13 +22,13 @@ Note: Double check that Java was installed to the location above. If not, reinst
 ## Running the Program
 Navigate to the project's directory, and execute the following to compile the program:
 ```bat
-javac -d out -sourcepath src src/Main.java src/**/*.java
+javac -d out -sourcepath src -cp lib/jlayer-1.0.1.jar src/Main.java src/**/*.java
 cp -r src/images out/
 ```
 
 To run the program, execute the following:
 ```bat
-java -cp "out:.:/usr/share/java/postgresql-jdbc4.jar" Main
+java -cp "out:lib/jlayer-1.0.1.jar:/usr/share/java/postgresql-jdbc4.jar" Main
 ```
 
 ## Project Members:
