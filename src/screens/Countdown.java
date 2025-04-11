@@ -1,5 +1,7 @@
 package screens;
 
+import udp.UDPClient;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,14 +12,26 @@ import java.io.FileInputStream;
 
 public class Countdown {
 
+    static UDPClient udpClient;
+
     static JPanel panel;
+
+    public Countdown(UDPClient udp) {
+        udpClient = udp;
+    }
 
     public static JPanel init() {
         panel = new JPanel(new GridLayout());
-        panel.setPreferredSize(new Dimension(600, 300));
+        panel.setPreferredSize(new Dimension(1200, 600));
         panel.setBackground(Color.BLACK);
 
-        paintImage(30);
+        // panel is not sized at initialization. we need to wait a little
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                paintImage(30);
+            }
+        });
 
         return panel;
     }
@@ -39,6 +53,8 @@ public class Countdown {
                     timeLeft--;
                 } else {
                     ((Timer) evt.getSource()).stop();
+
+                    udpClient.transitStatusCode(202);
 
                     cardLayout.show(cardPanel, "game-action");
                 }
@@ -88,13 +104,40 @@ public class Countdown {
     }
 
     private static void paintImage(Integer id) {
-        ImageIcon countdownImage = new ImageIcon(Objects.requireNonNull(Countdown.class.getClassLoader().getResource(String.format("images/countdown/%s.png", id))));
-        JLabel label = new JLabel(countdownImage, SwingConstants.CENTER);
+        ImageIcon ogBackgroundImage = new ImageIcon(Objects.requireNonNull(
+                Countdown.class.getClassLoader().getResource("images/countdown/background.png"))
+        );
+        ImageIcon ogCountdownImage = new ImageIcon(Objects.requireNonNull(
+                Countdown.class.getClassLoader().getResource(String.format("images/countdown/%s.png", id)))
+        );
 
-        panel.setSize(countdownImage.getIconWidth(), countdownImage.getIconHeight());
+        ImageIcon backgroundImage = new ImageIcon(ogBackgroundImage.getImage().getScaledInstance(636, 483, Image.SCALE_SMOOTH));
+        ImageIcon countdownImage = new ImageIcon(ogCountdownImage.getImage().getScaledInstance(264, 121, Image.SCALE_SMOOTH));
+
+        JLayeredPane layeredPane = getLayeredPane(backgroundImage, countdownImage);
+
         panel.removeAll();
-        panel.add(label);
+        panel.setLayout(new BorderLayout());
+        panel.add(layeredPane, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
+    }
+
+    private static JLayeredPane getLayeredPane(ImageIcon backgroundImage, ImageIcon countdownImage) {
+        JLabel backgroundLabel = new JLabel(backgroundImage);
+        backgroundLabel.setBounds(0, 0, panel.getWidth(), panel.getHeight());
+
+        JLabel countdownLabel = new JLabel(countdownImage);
+        int cw = countdownImage.getIconWidth();
+        int ch = countdownImage.getIconHeight();
+        System.out.println((panel.getWidth() - cw));
+        countdownLabel.setBounds(589, 420, cw, ch);
+
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setPreferredSize(panel.getSize());
+
+        layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(countdownLabel, JLayeredPane.PALETTE_LAYER);
+        return layeredPane;
     }
 }

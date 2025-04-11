@@ -3,6 +3,7 @@ package screens;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.util.Objects;
 
 public class GameAction {
     private static JTextField[][] textFields;
@@ -72,6 +73,31 @@ public class GameAction {
         panel.add(bottomPanel);
 
         return topPanel;
+    }
+
+    public static void processEvent(String event) {
+       // TODO: Process hits and display them on the screen
+        if (event == null || event.isEmpty()) {
+            System.out.println("Received an empty event, skipping...");
+            return;
+        }
+
+        String[] parts = event.split(":");
+        if (parts.length < 2) {
+            System.out.println("Malformed event: " + event);
+            return;
+        }
+
+        String attackerId = parts[0];
+        String targetId = parts[1];
+
+        if(Objects.equals(attackerId, "43")) {
+            // Green base has been tagged
+        } else if (Objects.equals(attackerId, "53")) {
+            // Red base has been tagged
+        } else {
+            // Player was tagged
+        }
     }
 
     private static String getPlayerText(JTextField field) {
