@@ -7,6 +7,9 @@ import java.util.Objects;
 
 public class GameAction {
     private static JTextField[][] textFields;
+	
+    private static JLabel timerLabel; 
+    private static int timeRemaining = 360; 
 
     public GameAction(JTextField[][] tfs) {
         textFields = tfs;
@@ -14,11 +17,20 @@ public class GameAction {
 
     public static JPanel init() {
         JPanel panel = new JPanel();
-
+		
         panel.setSize(600, 400);
         panel.setLayout(new GridLayout(2, 1));
 
-        JPanel topPanel = new JPanel(new GridLayout(1, 2));
+        JPanel topPanel = new JPanel(new GridLayout(1, 3)); 
+
+        timerLabel = new JLabel("Time Left: 06:00", SwingConstants.CENTER);
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 25));
+        timerLabel.setForeground(Color.WHITE);
+        JPanel timerPanel = new JPanel();
+        timerPanel.setBackground(Color.BLACK);
+        timerPanel.add(timerLabel);
+
+        topPanel.add(timerPanel);
 
         JPanel greenPanel = new JPanel(new BorderLayout());
         greenPanel.setBorder(new LineBorder(Color.GRAY, 2));
@@ -72,6 +84,8 @@ public class GameAction {
         panel.add(topPanel);
         panel.add(bottomPanel);
 
+        startTimer();
+
         return topPanel;
     }
 
@@ -104,4 +118,19 @@ public class GameAction {
         String name = field.getText().trim();
         return name.isEmpty() ? "" : name + " - 0 pts";
     }
+
+    private static void startTimer() {
+        Timer timer = new Timer(1000, e -> {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                int minutes = timeRemaining / 60;
+                int seconds = timeRemaining % 60;
+                timerLabel.setText(String.format("Time Left: %02d:%02d", minutes, seconds));
+            } else {
+                ((Timer) e.getSource()).stop();//need to code what happens when timer hits 0
+            }
+        });
+        timer.start();
+    }
 }
+
