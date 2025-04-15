@@ -46,7 +46,7 @@ public class Main {
 
         JPanel splashPanel = Splash.run();
         JPanel playerEntryPanel = PlayerEntry.init(cardLayout, cardPanel);
-        JPanel gameActionPanel = GameAction.init();
+        JPanel gameActionPanel = GameAction.getMainPanel();
         JPanel countdownPanel = Countdown.init();
 
         playerEntryWrapper.add(playerEntryPanel, BorderLayout.CENTER);

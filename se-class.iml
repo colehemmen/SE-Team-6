@@ -34,5 +34,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="postgresql" level="application" />
+    <orderEntry type="library" name="googlecode.soundlibs.jlayer" level="application" />
   </component>
 </module>

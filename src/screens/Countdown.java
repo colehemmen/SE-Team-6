@@ -55,6 +55,7 @@ public class Countdown {
                     ((Timer) evt.getSource()).stop();
 
                     udpClient.transitStatusCode(202);
+                    GameAction.run();
 
                     cardLayout.show(cardPanel, "game-action");
                 }
@@ -130,7 +131,7 @@ public class Countdown {
         JLabel countdownLabel = new JLabel(countdownImage);
         int cw = countdownImage.getIconWidth();
         int ch = countdownImage.getIconHeight();
-        System.out.println((panel.getWidth() - cw));
+
         countdownLabel.setBounds(589, 420, cw, ch);
 
         JLayeredPane layeredPane = new JLayeredPane();

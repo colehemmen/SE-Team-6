@@ -135,6 +135,8 @@ public class PlayerEntry {
     public static void startCountdown(CardLayout cardLayout, JPanel cardPanel) {
         cardLayout.show(cardPanel, "countdown");
 
+        GameAction.updateTextValues(textFields);
+
         SwingUtilities.invokeLater(() -> Countdown.run(cardLayout, cardPanel));
     }
 }
