@@ -236,7 +236,7 @@ public class GameAction {
             else {
                 label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
-            label.setFont(new Font("Arial", Font.PLAIN, 18));
+            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
@@ -264,7 +264,7 @@ public class GameAction {
             else {
                 label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
-            label.setFont(new Font("Arial", Font.PLAIN, 18));
+            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
