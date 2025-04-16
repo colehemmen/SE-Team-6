@@ -4,10 +4,12 @@ import screens.GameAction;
 import screens.PlayerEntry;
 import screens.Splash;
 import udp.UDPClient;
+import udp.UDPServer;
 
 import java.awt.*;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.function.Consumer;
 import javax.swing.*;
 
 @SuppressWarnings("InstantiationOfUtilityClass")
@@ -44,7 +46,7 @@ public class Main {
 
         JPanel splashPanel = Splash.run();
         JPanel playerEntryPanel = PlayerEntry.init(cardLayout, cardPanel);
-        JPanel gameActionPanel = GameAction.init();
+        JPanel gameActionPanel = GameAction.getMainPanel();
         JPanel countdownPanel = Countdown.init();
 
         playerEntryWrapper.add(playerEntryPanel, BorderLayout.CENTER);
@@ -65,13 +67,17 @@ public class Main {
     }
 
     private static void initializeScreens() throws SocketException, UnknownHostException {
-        //UDPServer udpServer = new UDPServer(7501); // TODO: uncomment this when we know what to do w/ the server next sprint
-        //udpServer.start();
-        DatabaseConnection database = new DatabaseConnection();
+        Consumer<String> handler = GameAction::processEvent;
+
         UDPClient udpClient = new UDPClient(7500);
+        UDPServer udpServer = new UDPServer(7501, udpClient, handler);
+        DatabaseConnection database = new DatabaseConnection();
+
+        udpServer.start();
 
         new PlayerEntry(database, udpClient, textFields);
-        new GameAction(textFields);
+        new GameAction(textFields, database);
+        new Countdown(udpClient);
     }
 
     private static void initializeFrame() {
