@@ -11,19 +11,43 @@ public class UDPClient {
 
     public UDPClient(Integer port) throws UnknownHostException, SocketException {
         socket = new DatagramSocket();
-        address = InetAddress.getByName("localhost");
+        address = InetAddress.getByName("127.0.0.1");
 
         this.port = port;
     }
 
-    public void transmitEquipmentCode(String code) {
+    public void trasmitMessage(String message) {
         try {
-            byte[] buf = code.getBytes(StandardCharsets.UTF_8);
+            byte[] buf = message.getBytes(StandardCharsets.UTF_8);
 
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
             socket.send(packet);
         } catch (IOException e) {
-            System.out.printf("Failed to transmit equipment code %s.\n\n%s", code, e);
+            System.out.printf("Failed to transmit message %s.\n\n%s", message, e);
+        }
+    }
+
+    public void transmitEquipmentCode(String equipmentId) {
+        try {
+            byte[] buf = equipmentId.getBytes(StandardCharsets.UTF_8);
+
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(packet);
+        } catch (IOException e) {
+            System.out.printf("Failed to transmit equipment code %s.\n\n%s", equipmentId, e);
+        }
+    }
+
+    public void transitStatusCode(int statusCode) {
+        try {
+            String payload = String.valueOf(statusCode);
+
+            byte[] buf = payload.getBytes(StandardCharsets.UTF_8);
+
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(packet);
+        } catch (IOException e) {
+            System.out.printf("Failed to transmit status code %s.\n\n%s", statusCode, e);
         }
     }
 
