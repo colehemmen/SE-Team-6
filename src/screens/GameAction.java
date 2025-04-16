@@ -65,8 +65,8 @@ public class GameAction {
     public static void updateTextValues(JTextField[][] tfs) {
         textFields = tfs;
 
-        buildGreenTeamListPanel(greenListPanel);
-        buildRedTeamListPanel(redListPanel);
+        buildGreenTeamListPanel(greenListPanel, "");
+        buildRedTeamListPanel(redListPanel, "");
         updateTeamScores();
 
         mainPanel.revalidate();
@@ -85,46 +85,21 @@ public class GameAction {
 
         boolean isGreenAttacker = isGreenTeam(attackerId);
         boolean isGreenTarget = isGreenTeam(targetId);
+        boolean addBtoGreenPlayer = false;
+        boolean addBtoRedPlayer = false;
+
 
         if (targetId.equals("43")) {
             if (!isGreenAttacker) {
                 playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
                 addEventToFeed("Player " + attackerId + " hit the GREEN BASE!");
-                for (Component comp : redListPanel.getComponents()) {
-                    if (comp instanceof JLabel) {
-                        JLabel label = (JLabel) comp;
-                        String labelText = label.getText();
-                
-                        if (labelText.contains(attackerCodename)) {
-                            // Match found
-                            if(!labelText.startsWith("🄱")) {
-                                label.setText("🄱  " + labelText);
-                            }
-                            System.out.println("Found attacker codename in red list: " + labelText);
-                            break; // optional: exit loop once found
-                        }
-                    }
-                }
+                addBtoRedPlayer = true;
             }
         } else if (targetId.equals("53")) {
             if (isGreenAttacker) {
                 playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
                 addEventToFeed("Player " + attackerId + " hit the RED BASE!");
-                for (Component comp : greenListPanel.getComponents()) {
-                    if (comp instanceof JLabel) {
-                        JLabel label = (JLabel) comp;
-                        String labelText = label.getText();
-                
-                        if (labelText.contains(attackerCodename)) {
-                            // Match found
-                            if(!labelText.startsWith("🄱")) {
-                                label.setText("🄱  " + labelText);
-                            }
-                            System.out.println("Found attacker codename in red list: " + labelText);
-                            break; // optional: exit loop once found
-                        }
-                    }
-                }
+                addBtoGreenPlayer = true;
             }
         } else {
             if (isGreenAttacker == isGreenTarget) return;
@@ -135,8 +110,16 @@ public class GameAction {
             addEventToFeed("Player " + attackerId + " hit Player " + targetId + "!");
         }
 
-        buildGreenTeamListPanel(greenListPanel);
-        buildRedTeamListPanel(redListPanel);
+        if(addBtoRedPlayer) {
+            buildGreenTeamListPanel(greenListPanel, "");
+            buildRedTeamListPanel(redListPanel, attackerCodename);
+            addBtoRedPlayer = false;
+        }
+        else if(addBtoGreenPlayer) {
+            buildGreenTeamListPanel(greenListPanel, attackerCodename);
+            buildRedTeamListPanel(redListPanel, "");
+            addBtoGreenPlayer = false;
+        }
         updateTeamScores();
 
         mainPanel.revalidate();
@@ -154,6 +137,23 @@ public class GameAction {
         }
         return false;
     }
+
+    /*private static void addStyleB(String attackerCodename, JPanel panel) {
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                String labelText = label.getText();
+        
+                if (labelText.contains(attackerCodename)) {
+                    // Match found
+                    if(!labelText.startsWith("🄱")) {
+                        label.setText("🄱  " + labelText);
+                    }
+                    break;
+                }
+            }
+        }
+    }*/
 
     private static JPanel buildGreenTeamPanel() {
         greenPanel = new JPanel(new BorderLayout());
@@ -178,7 +178,7 @@ public class GameAction {
         greenPanel.add(labelPanel, BorderLayout.NORTH);
 
         greenListPanel = new JPanel(new GridLayout(15, 1));
-        buildGreenTeamListPanel(greenListPanel);
+        buildGreenTeamListPanel(greenListPanel, "");
         greenPanel.add(greenListPanel, BorderLayout.CENTER);
 
         return greenPanel;
@@ -207,13 +207,13 @@ public class GameAction {
         redPanel.add(labelPanel, BorderLayout.NORTH);
 
         redListPanel = new JPanel(new GridLayout(15, 1));
-        buildRedTeamListPanel(redListPanel);
+        buildRedTeamListPanel(redListPanel, "");
         redPanel.add(redListPanel, BorderLayout.CENTER);
 
         return redPanel;
     }
 
-    private static void buildGreenTeamListPanel(JPanel panel) {
+    private static void buildGreenTeamListPanel(JPanel panel, String attackerCodeName) {
         panel.removeAll();
 
         List<Player> greenPlayers = new ArrayList<>();
@@ -229,13 +229,19 @@ public class GameAction {
         greenPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore())); // Sort by score descending
 
         for (Player player : greenPlayers) {
-            JLabel label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            JLabel label;
+            if(attackerCodeName.equals(player.getId())) {
+                label = new JLabel("🄱  " + player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            else {
+                label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
             label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
 
-    private static void buildRedTeamListPanel(JPanel panel) {
+    private static void buildRedTeamListPanel(JPanel panel, String attackerCodeName) {
         panel.removeAll();
 
         List<Player> redPlayers = new ArrayList<>();
@@ -251,7 +257,13 @@ public class GameAction {
         redPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore())); // Sort by score descending
 
         for (Player player : redPlayers) {
-            JLabel label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            JLabel label;
+            if(attackerCodeName.equals(player.getId())) {
+                label = new JLabel("🄱  " + player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            else {
+                label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
             label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
