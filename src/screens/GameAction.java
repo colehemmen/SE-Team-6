@@ -6,8 +6,8 @@ import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 
 import database.DatabaseConnection;
-import javazoom.jl.player.Player;
 import udp.UDPClient;
+import classes.Player;
 
 import java.awt.event.ActionEvent;
 import java.util.*;
@@ -93,27 +93,27 @@ public class GameAction {
         String targetId = parts[1];
 
         String attackerCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(attackerId));
+        String targetCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(targetId));
 
-        boolean isGreenAttacker = isGreenTeam(attackerId);
-        boolean isGreenTarget = isGreenTeam(targetId);
+        boolean isGreenAttacker = isGreenTeam(attackerCodename);
+        boolean isGreenTarget = isGreenTeam(targetCodename);
         boolean addBtoGreenPlayer = false;
         boolean addBtoRedPlayer = false;
 
-
-        if (targetId.equals("43")) {
-            if (!isGreenAttacker) {
+        if (targetId.equals("43")) { // Green base hit
+            if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
                 playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
                 addEventToFeed("Player " + attackerId + " hit the GREEN BASE!");
                 addBtoRedPlayer = true;
             }
-        } else if (targetId.equals("53")) {
-            if (isGreenAttacker) {
+        } else if (targetId.equals("53")) { // Red base hit
+            if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
                 playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
                 addEventToFeed("Player " + attackerId + " hit the RED BASE!");
                 addBtoGreenPlayer = true;
             }
         } else {
-            if (isGreenAttacker == isGreenTarget) return;
+            if (!isGreenAttacker && !isGreenTarget) return; // Friendly fire disabled
 
             playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 10);
             playerScores.put(targetId, Math.max(0, playerScores.getOrDefault(targetId, 0) - 10));
@@ -141,10 +141,10 @@ public class GameAction {
         return mainPanel;
     }
 
-    private static boolean isGreenTeam(String playerId) {
+    private static boolean isGreenTeam(String playerCodename) {
         for (int i = 0; i < 15; i++) {
             String playerText = getPlayerText(textFields[i][0]);
-            if (playerText.startsWith(playerId)) return true;
+            if (playerText.contains(playerCodename)) return true;
         }
         return false;
     }
@@ -396,23 +396,5 @@ public class GameAction {
             }
         });
         flashTimer.start();
-    }
-
-    private static class Player {
-        private final String id;
-        private final int score;
-
-        public Player(String id, int score) {
-            this.id = id;
-            this.score = score;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public int getScore() {
-            return score;
-        }
     }
 }
