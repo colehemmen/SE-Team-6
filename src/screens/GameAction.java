@@ -96,41 +96,35 @@ public class GameAction {
         String targetCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(targetId));
 
         boolean isGreenAttacker = isGreenTeam(attackerCodename);
-        boolean isGreenTarget = isGreenTeam(targetCodename);
-        boolean addBtoGreenPlayer = false;
-        boolean addBtoRedPlayer = false;
+        boolean isGreenTarget = targetCodename != null && isGreenTeam(targetCodename);
 
         if (targetId.equals("43")) { // Green base hit
             if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
-                playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerId + " hit the GREEN BASE!");
-                addBtoRedPlayer = true;
+                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                addEventToFeed("Player " + attackerCodename + " hit the GREEN BASE!");
             }
         } else if (targetId.equals("53")) { // Red base hit
             if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
-                playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerId + " hit the RED BASE!");
-                addBtoGreenPlayer = true;
+                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                addEventToFeed("Player " + attackerCodename + " hit the RED BASE!");
             }
         } else {
             if (!isGreenAttacker && !isGreenTarget) return; // Friendly fire disabled
 
-            playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 10);
-            playerScores.put(targetId, Math.max(0, playerScores.getOrDefault(targetId, 0) - 10));
+            playerScores.put(attackerCodename, playerScores.getOrDefault(attackerCodename, 0) + 10);
+            playerScores.put(targetCodename, Math.max(0, playerScores.getOrDefault(targetCodename, 0) - 10));
 
-            addEventToFeed("Player " + attackerId + " hit Player " + targetId + "!");
+            addEventToFeed("Player " + attackerCodename + " hit Player " + targetCodename + "!");
         }
 
-        if(addBtoRedPlayer) {
+        if (isGreenAttacker) {
             buildGreenTeamListPanel(greenListPanel, "");
             buildRedTeamListPanel(redListPanel, attackerCodename);
-            addBtoRedPlayer = false;
-        }
-        else if(addBtoGreenPlayer) {
+        } else {
             buildGreenTeamListPanel(greenListPanel, attackerCodename);
             buildRedTeamListPanel(redListPanel, "");
-            addBtoGreenPlayer = false;
         }
+
         updateTeamScores();
 
         mainPanel.revalidate();
@@ -144,6 +138,8 @@ public class GameAction {
     private static boolean isGreenTeam(String playerCodename) {
         for (int i = 0; i < 15; i++) {
             String playerText = getPlayerText(textFields[i][0]);
+            if(playerText.isEmpty()) break;
+
             if (playerText.contains(playerCodename)) return true;
         }
         return false;
@@ -231,9 +227,9 @@ public class GameAction {
         for (int i = 0; i < 15; i++) {
             String playerText = getPlayerText(textFields[i][0]);
             if (!playerText.isEmpty()) {
-                String playerId = playerText.split(" ")[0];
-                int score = playerScores.getOrDefault(playerId, 0);
-                greenPlayers.add(new Player(playerId, score));
+                String playerCodename = playerText.split(" ")[0];
+                int score = playerScores.getOrDefault(playerCodename, 0);
+                greenPlayers.add(new Player(playerCodename, score));
             }
         }
 
@@ -241,11 +237,11 @@ public class GameAction {
 
         for (Player player : greenPlayers) {
             JLabel label;
-            if(attackerCodeName.equals(player.getId())) {
-                label = new JLabel("🄱  " + player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            if(attackerCodeName.equals(player.getCodename())) {
+                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             else {
-                label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
@@ -269,11 +265,11 @@ public class GameAction {
 
         for (Player player : redPlayers) {
             JLabel label;
-            if(attackerCodeName.equals(player.getId())) {
-                label = new JLabel("🄱  " + player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            if(attackerCodeName.equals(player.getCodename())) {
+                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             else {
-                label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
@@ -370,13 +366,13 @@ public class GameAction {
             String redText = getPlayerText(textFields[i][1]);
 
             if (!greenText.isEmpty()) {
-                String id = greenText.split(" ")[0];
-                greenScore += playerScores.getOrDefault(id, 0);
+                String codeName = greenText.split(" ")[0];
+                greenScore += playerScores.getOrDefault(codeName, 0);
             }
 
             if (!redText.isEmpty()) {
-                String id = redText.split(" ")[0];
-                redScore += playerScores.getOrDefault(id, 0);
+                String codeName = redText.split(" ")[0];
+                redScore += playerScores.getOrDefault(codeName, 0);
             }
         }
 
