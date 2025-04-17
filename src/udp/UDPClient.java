@@ -16,7 +16,7 @@ public class UDPClient {
         this.port = port;
     }
 
-    public void trasmitMessage(String message) {
+    public void transmitMessage(String message) {
         try {
             byte[] buf = message.getBytes(StandardCharsets.UTF_8);
 

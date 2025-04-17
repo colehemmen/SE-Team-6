@@ -76,7 +76,7 @@ public class Main {
         udpServer.start();
 
         new PlayerEntry(database, udpClient, textFields);
-        new GameAction(textFields, database);
+        new GameAction(textFields, database, udpClient, cardLayout, cardPanel);
         new Countdown(udpClient);
     }
 

@@ -37,7 +37,7 @@ public class UDPServer extends Thread {
 
             System.out.println(received);
 
-            udpClient.trasmitMessage(String.format("Processed: %s", received));
+            udpClient.transmitMessage(String.format("Processed: %s", received));
         }
 
         socket.close();

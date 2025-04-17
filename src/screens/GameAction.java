@@ -2,17 +2,24 @@ package screens;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 
 import database.DatabaseConnection;
+import javazoom.jl.player.Player;
+import udp.UDPClient;
 
+import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
 public class GameAction {
     private static DatabaseConnection databaseConnection;
     private static JTextField[][] textFields;
+    private static UDPClient udpClient;
 
+    private static javax.swing.Timer timer;
+    private static javazoom.jl.player.Player playMP3;
 
     private static JPanel mainPanel;
     private static JLabel timerLabel;
@@ -33,14 +40,15 @@ public class GameAction {
     private static javax.swing.Timer flashTimer;
     private static boolean flashToggle = false;
 
-    public GameAction(JTextField[][] tfs, DatabaseConnection db) {
+    public GameAction(JTextField[][] tfs, DatabaseConnection db, UDPClient udp, CardLayout cLayout, JPanel cardPanel) {
         databaseConnection = db;
         textFields = tfs;
+        udpClient = udp;
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setName("root");
 
-        JPanel timerPanel = buildTimerPanel();
+        JPanel timerPanel = buildTimerPanel(cLayout, cardPanel);
         rootPanel.add(timerPanel, BorderLayout.NORTH);
 
         greenPanel = buildGreenTeamPanel();
@@ -57,7 +65,9 @@ public class GameAction {
         mainPanel = rootPanel;
     }
 
-    public static void run() {
+    public static void run(javazoom.jl.player.Player mp3Player) {
+        playMP3 = mp3Player;
+
         startTimer();
         startFlashingEffect();
     }
@@ -81,6 +91,7 @@ public class GameAction {
 
         String attackerId = parts[0];
         String targetId = parts[1];
+
         String attackerCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(attackerId));
 
         boolean isGreenAttacker = isGreenTeam(attackerId);
@@ -269,7 +280,7 @@ public class GameAction {
         }
     }
 
-    private static JPanel buildTimerPanel() {
+    private static JPanel buildTimerPanel(CardLayout cLayout, JPanel cPanel) {
         timerLabel = new JLabel("Time Left: 06:00", SwingConstants.CENTER);
         timerLabel.setFont(new Font("Arial", Font.BOLD, 25));
         timerLabel.setForeground(Color.WHITE);
@@ -277,7 +288,11 @@ public class GameAction {
         JButton returnButton = new JButton("Return to Player Entry");
         returnButton.setFont(new Font("Arial", Font.PLAIN, 16));
         returnButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Returning to Player Entry screen...");
+            timer.stop();
+            timeRemaining = 360; // reset countdown clock
+            playMP3.close(); // stops music
+
+            cLayout.show(cPanel, "player-entry");
         });
 
         JPanel panel = new JPanel();
@@ -323,18 +338,27 @@ public class GameAction {
     }
 
     private static void startTimer() {
-        javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
-            if (timeRemaining > 0) {
-                timeRemaining--;
-                int minutes = timeRemaining / 60;
-                int seconds = timeRemaining % 60;
-                timerLabel.setText(String.format("Time Left: %02d:%02d", minutes, seconds));
-            } else {
-                ((javax.swing.Timer) e.getSource()).stop();
-                if (flashTimer != null) flashTimer.stop();
+        Action timerTimer = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    int minutes = timeRemaining / 60;
+                    int seconds = timeRemaining % 60;
+                    timerLabel.setText(String.format("Time Left: %02d:%02d", minutes, seconds));
+                } else {
+                    ((javax.swing.Timer) e.getSource()).stop();
+                    if (flashTimer != null) flashTimer.stop();
+
+                    udpClient.transitStatusCode(221);
+                }
             }
-        });
+        };
+
+        timer = new Timer(1000, timerTimer);
         timer.start();
+
+        timerTimer.actionPerformed(null);
     }
 
     private static void updateTeamScores() {
