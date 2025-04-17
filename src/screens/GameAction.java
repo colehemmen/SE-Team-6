@@ -2,13 +2,24 @@ package screens;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.LineBorder;
+
+import database.DatabaseConnection;
+import udp.UDPClient;
+import classes.Player;
+
+import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
 public class GameAction {
+    private static DatabaseConnection databaseConnection;
     private static JTextField[][] textFields;
+    private static UDPClient udpClient;
 
+    private static javax.swing.Timer timer;
+    private static javazoom.jl.player.Player playMP3;
 
     private static JPanel mainPanel;
     private static JLabel timerLabel;
@@ -29,13 +40,15 @@ public class GameAction {
     private static javax.swing.Timer flashTimer;
     private static boolean flashToggle = false;
 
-    public GameAction(JTextField[][] tfs) {
+    public GameAction(JTextField[][] tfs, DatabaseConnection db, UDPClient udp, CardLayout cLayout, JPanel cardPanel) {
+        databaseConnection = db;
         textFields = tfs;
+        udpClient = udp;
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setName("root");
 
-        JPanel timerPanel = buildTimerPanel();
+        JPanel timerPanel = buildTimerPanel(cLayout, cardPanel);
         rootPanel.add(timerPanel, BorderLayout.NORTH);
 
         greenPanel = buildGreenTeamPanel();
@@ -52,7 +65,9 @@ public class GameAction {
         mainPanel = rootPanel;
     }
 
-    public static void run() {
+    public static void run(javazoom.jl.player.Player mp3Player) {
+        playMP3 = mp3Player;
+
         startTimer();
         startFlashingEffect();
     }
@@ -60,8 +75,8 @@ public class GameAction {
     public static void updateTextValues(JTextField[][] tfs) {
         textFields = tfs;
 
-        buildGreenTeamListPanel(greenListPanel);
-        buildRedTeamListPanel(redListPanel);
+        buildGreenTeamListPanel(greenListPanel, "");
+        buildRedTeamListPanel(redListPanel, "");
         updateTeamScores();
 
         mainPanel.revalidate();
@@ -77,30 +92,39 @@ public class GameAction {
         String attackerId = parts[0];
         String targetId = parts[1];
 
-        boolean isGreenAttacker = isGreenTeam(attackerId);
-        boolean isGreenTarget = isGreenTeam(targetId);
+        String attackerCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(attackerId));
+        String targetCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(targetId));
 
-        if (targetId.equals("43")) {
-            if (!isGreenAttacker) {
-                playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerId + " hit the GREEN BASE!");
+        boolean isGreenAttacker = isGreenTeam(attackerCodename);
+        boolean isGreenTarget = targetCodename != null && isGreenTeam(targetCodename);
+
+        if (targetId.equals("43")) { // Green base hit
+            if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
+                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                addEventToFeed("Player " + attackerCodename + " hit the GREEN BASE!");
             }
-        } else if (targetId.equals("53")) {
-            if (isGreenAttacker) {
-                playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerId + " hit the RED BASE!");
+        } else if (targetId.equals("53")) { // Red base hit
+            if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
+                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                addEventToFeed("Player " + attackerCodename + " hit the RED BASE!");
             }
         } else {
-            if (isGreenAttacker == isGreenTarget) return;
+            if (!isGreenAttacker && !isGreenTarget) return; // Friendly fire disabled
 
-            playerScores.put(attackerId, playerScores.getOrDefault(attackerId, 0) + 10);
-            playerScores.put(targetId, Math.max(0, playerScores.getOrDefault(targetId, 0) - 10));
+            playerScores.put(attackerCodename, playerScores.getOrDefault(attackerCodename, 0) + 10);
+            playerScores.put(targetCodename, Math.max(0, playerScores.getOrDefault(targetCodename, 0) - 10));
 
-            addEventToFeed("Player " + attackerId + " hit Player " + targetId + "!");
+            addEventToFeed("Player " + attackerCodename + " hit Player " + targetCodename + "!");
         }
 
-        buildGreenTeamListPanel(greenListPanel);
-        buildRedTeamListPanel(redListPanel);
+        if (isGreenAttacker) {
+            buildGreenTeamListPanel(greenListPanel, "");
+            buildRedTeamListPanel(redListPanel, attackerCodename);
+        } else {
+            buildGreenTeamListPanel(greenListPanel, attackerCodename);
+            buildRedTeamListPanel(redListPanel, "");
+        }
+
         updateTeamScores();
 
         mainPanel.revalidate();
@@ -111,13 +135,32 @@ public class GameAction {
         return mainPanel;
     }
 
-    private static boolean isGreenTeam(String playerId) {
+    private static boolean isGreenTeam(String playerCodename) {
         for (int i = 0; i < 15; i++) {
             String playerText = getPlayerText(textFields[i][0]);
-            if (playerText.startsWith(playerId)) return true;
+            if(playerText.isEmpty()) break;
+
+            if (playerText.contains(playerCodename)) return true;
         }
         return false;
     }
+
+    /*private static void addStyleB(String attackerCodename, JPanel panel) {
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                String labelText = label.getText();
+        
+                if (labelText.contains(attackerCodename)) {
+                    // Match found
+                    if(!labelText.startsWith("🄱")) {
+                        label.setText("🄱  " + labelText);
+                    }
+                    break;
+                }
+            }
+        }
+    }*/
 
     private static JPanel buildGreenTeamPanel() {
         greenPanel = new JPanel(new BorderLayout());
@@ -142,7 +185,7 @@ public class GameAction {
         greenPanel.add(labelPanel, BorderLayout.NORTH);
 
         greenListPanel = new JPanel(new GridLayout(15, 1));
-        buildGreenTeamListPanel(greenListPanel);
+        buildGreenTeamListPanel(greenListPanel, "");
         greenPanel.add(greenListPanel, BorderLayout.CENTER);
 
         return greenPanel;
@@ -171,35 +214,41 @@ public class GameAction {
         redPanel.add(labelPanel, BorderLayout.NORTH);
 
         redListPanel = new JPanel(new GridLayout(15, 1));
-        buildRedTeamListPanel(redListPanel);
+        buildRedTeamListPanel(redListPanel, "");
         redPanel.add(redListPanel, BorderLayout.CENTER);
 
         return redPanel;
     }
 
-    private static void buildGreenTeamListPanel(JPanel panel) {
+    private static void buildGreenTeamListPanel(JPanel panel, String attackerCodeName) {
         panel.removeAll();
 
         List<Player> greenPlayers = new ArrayList<>();
         for (int i = 0; i < 15; i++) {
             String playerText = getPlayerText(textFields[i][0]);
             if (!playerText.isEmpty()) {
-                String playerId = playerText.split(" ")[0];
-                int score = playerScores.getOrDefault(playerId, 0);
-                greenPlayers.add(new Player(playerId, score));
+                String playerCodename = playerText.split(" ")[0];
+                int score = playerScores.getOrDefault(playerCodename, 0);
+                greenPlayers.add(new Player(playerCodename, score));
             }
         }
 
         greenPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore())); // Sort by score descending
 
         for (Player player : greenPlayers) {
-            JLabel label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
-            label.setFont(new Font("Arial", Font.PLAIN, 18));
+            JLabel label;
+            if(attackerCodeName.equals(player.getCodename())) {
+                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            else {
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
 
-    private static void buildRedTeamListPanel(JPanel panel) {
+    private static void buildRedTeamListPanel(JPanel panel, String attackerCodeName) {
         panel.removeAll();
 
         List<Player> redPlayers = new ArrayList<>();
@@ -215,13 +264,19 @@ public class GameAction {
         redPlayers.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore())); // Sort by score descending
 
         for (Player player : redPlayers) {
-            JLabel label = new JLabel(player.getId() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
-            label.setFont(new Font("Arial", Font.PLAIN, 18));
+            JLabel label;
+            if(attackerCodeName.equals(player.getCodename())) {
+                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            else {
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+            }
+            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
 
-    private static JPanel buildTimerPanel() {
+    private static JPanel buildTimerPanel(CardLayout cLayout, JPanel cPanel) {
         timerLabel = new JLabel("Time Left: 06:00", SwingConstants.CENTER);
         timerLabel.setFont(new Font("Arial", Font.BOLD, 25));
         timerLabel.setForeground(Color.WHITE);
@@ -229,7 +284,11 @@ public class GameAction {
         JButton returnButton = new JButton("Return to Player Entry");
         returnButton.setFont(new Font("Arial", Font.PLAIN, 16));
         returnButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Returning to Player Entry screen...");
+            timer.stop();
+            timeRemaining = 360; // reset countdown clock
+            playMP3.close(); // stops music
+
+            cLayout.show(cPanel, "player-entry");
         });
 
         JPanel panel = new JPanel();
@@ -275,18 +334,27 @@ public class GameAction {
     }
 
     private static void startTimer() {
-        javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
-            if (timeRemaining > 0) {
-                timeRemaining--;
-                int minutes = timeRemaining / 60;
-                int seconds = timeRemaining % 60;
-                timerLabel.setText(String.format("Time Left: %02d:%02d", minutes, seconds));
-            } else {
-                ((javax.swing.Timer) e.getSource()).stop();
-                if (flashTimer != null) flashTimer.stop();
+        Action timerTimer = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    int minutes = timeRemaining / 60;
+                    int seconds = timeRemaining % 60;
+                    timerLabel.setText(String.format("Time Left: %02d:%02d", minutes, seconds));
+                } else {
+                    ((javax.swing.Timer) e.getSource()).stop();
+                    if (flashTimer != null) flashTimer.stop();
+
+                    udpClient.transitStatusCode(221);
+                }
             }
-        });
+        };
+
+        timer = new Timer(1000, timerTimer);
         timer.start();
+
+        timerTimer.actionPerformed(null);
     }
 
     private static void updateTeamScores() {
@@ -298,13 +366,13 @@ public class GameAction {
             String redText = getPlayerText(textFields[i][1]);
 
             if (!greenText.isEmpty()) {
-                String id = greenText.split(" ")[0];
-                greenScore += playerScores.getOrDefault(id, 0);
+                String codeName = greenText.split(" ")[0];
+                greenScore += playerScores.getOrDefault(codeName, 0);
             }
 
             if (!redText.isEmpty()) {
-                String id = redText.split(" ")[0];
-                redScore += playerScores.getOrDefault(id, 0);
+                String codeName = redText.split(" ")[0];
+                redScore += playerScores.getOrDefault(codeName, 0);
             }
         }
 
@@ -324,23 +392,5 @@ public class GameAction {
             }
         });
         flashTimer.start();
-    }
-
-    private static class Player {
-        private final String id;
-        private final int score;
-
-        public Player(String id, int score) {
-            this.id = id;
-            this.score = score;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public int getScore() {
-            return score;
-        }
     }
 }

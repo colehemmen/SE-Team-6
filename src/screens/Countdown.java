@@ -16,6 +16,8 @@ public class Countdown {
 
     static JPanel panel;
 
+    static Player playMP3;
+
     public Countdown(UDPClient udp) {
         udpClient = udp;
     }
@@ -25,25 +27,16 @@ public class Countdown {
         panel.setPreferredSize(new Dimension(1200, 600));
         panel.setBackground(Color.BLACK);
 
-        // panel is not sized at initialization. we need to wait a little
-        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e) {
-                paintImage(30);
-            }
-        });
-
         return panel;
     }
 
     public static void run(CardLayout cardLayout, JPanel cardPanel) {
-        Timer timer = new Timer(1000, new ActionListener() {
-            private int timeLeft = 29;
-            int trackNumber = (int) (Math.random() * 8 + 1); // Chooses random music track between Track01 and Track08
+        Action countdown = new AbstractAction() {
+            int timeLeft = 30;
+            final int trackNumber = (int) (Math.random() * 8 + 1); // Chooses random music track between Track01 and Track08
 
             @Override
-            public void actionPerformed(ActionEvent evt) {
-                // Play selected soundtrack at specific time to sync with the countdown
+            public void actionPerformed(ActionEvent e) {
                 if (timeLeft == 18) {
                     startSoundtrack(trackNumber);
                 }
@@ -52,18 +45,21 @@ public class Countdown {
 
                     timeLeft--;
                 } else {
-                    ((Timer) evt.getSource()).stop();
+                    ((Timer) e.getSource()).stop();
 
                     udpClient.transitStatusCode(202);
-                    GameAction.run();
+                    GameAction.run(playMP3);
 
+                    timeLeft = 30; // reset if they come back to screen
                     cardLayout.show(cardPanel, "game-action");
                 }
             }
-        });
+        };
 
-        timer.setRepeats(true);
+        Timer timer = new Timer(1000, countdown);
         timer.start();
+
+        countdown.actionPerformed(null);
     }
 
     private static void startSoundtrack(int trackNumber) {
@@ -90,7 +86,7 @@ public class Countdown {
                     System.out.println("Invalid Track Number");
 
                 try (FileInputStream track = new FileInputStream(filePath)) {
-                    Player playMP3 = new Player(track);
+                    playMP3 = new Player(track);
                     playMP3.play();
                 }
 
