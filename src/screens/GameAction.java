@@ -238,8 +238,12 @@ public class GameAction {
         for (Player player : greenPlayers) {
             JLabel label;
             if(attackerCodeName.equals(player.getCodename())) {
-                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+                player.setCodename("🄱  " + player.getCodename());
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
+            //else if (player.getCodename().contains("🄱  ")) {
+                //
+            //}
             else {
                 label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
@@ -266,8 +270,12 @@ public class GameAction {
         for (Player player : redPlayers) {
             JLabel label;
             if(attackerCodeName.equals(player.getCodename())) {
-                label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
+                player.setCodename("🄱  " + player.getCodename());
+                label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
+            //else if (player.getCodename().contains("🄱  ")) {
+                //
+            //}
             else {
                 label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
