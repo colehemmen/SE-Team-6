@@ -10,6 +10,7 @@ import udp.UDPClient;
 import classes.Player;
 
 import java.awt.event.ActionEvent;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 
@@ -84,51 +85,55 @@ public class GameAction {
     }
 
     public static void processEvent(String event) {
-        if (event == null || event.isEmpty()) return;
+        try {
+            if (event == null || event.isEmpty()) return;
 
-        String[] parts = event.split(":");
-        if (parts.length < 2) return;
+            String[] parts = event.split(":");
+            if (parts.length < 2) return;
 
-        String attackerId = parts[0];
-        String targetId = parts[1];
+            String attackerId = parts[0];
+            String targetId = parts[1];
 
-        String attackerCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(attackerId));
-        String targetCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(targetId));
+            String attackerCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(attackerId));
+            String targetCodename = databaseConnection.getCodenameByPlayerId(Integer.parseInt(targetId));
 
-        boolean isGreenAttacker = isGreenTeam(attackerCodename);
-        boolean isGreenTarget = targetCodename != null && isGreenTeam(targetCodename);
+            boolean isGreenAttacker = isGreenTeam(attackerCodename);
+            boolean isGreenTarget = targetCodename != null && isGreenTeam(targetCodename);
 
-        if (targetId.equals("43")) { // Green base hit
-            if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
-                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerCodename + " hit the GREEN BASE!");
+            if (targetId.equals("43")) { // Green base hit
+                if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
+                    playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                    addEventToFeed("Player " + attackerCodename + " hit the GREEN BASE!");
+                }
+            } else if (targetId.equals("53")) { // Red base hit
+                if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
+                    playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                    addEventToFeed("Player " + attackerCodename + " hit the RED BASE!");
+                }
+            } else {
+                if (!isGreenAttacker && !isGreenTarget) return; // Friendly fire disabled
+
+                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerCodename, 0) + 10);
+                playerScores.put(targetCodename, Math.max(0, playerScores.getOrDefault(targetCodename, 0) - 10));
+
+                addEventToFeed("Player " + attackerCodename + " hit Player " + targetCodename + "!");
             }
-        } else if (targetId.equals("53")) { // Red base hit
-            if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
-                playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
-                addEventToFeed("Player " + attackerCodename + " hit the RED BASE!");
+
+            if (isGreenAttacker) {
+                buildGreenTeamListPanel(greenListPanel, "");
+                buildRedTeamListPanel(redListPanel, attackerCodename);
+            } else {
+                buildGreenTeamListPanel(greenListPanel, attackerCodename);
+                buildRedTeamListPanel(redListPanel, "");
             }
-        } else {
-            if (!isGreenAttacker && !isGreenTarget) return; // Friendly fire disabled
 
-            playerScores.put(attackerCodename, playerScores.getOrDefault(attackerCodename, 0) + 10);
-            playerScores.put(targetCodename, Math.max(0, playerScores.getOrDefault(targetCodename, 0) - 10));
+            updateTeamScores();
 
-            addEventToFeed("Player " + attackerCodename + " hit Player " + targetCodename + "!");
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
         }
-
-        if (isGreenAttacker) {
-            buildGreenTeamListPanel(greenListPanel, "");
-            buildRedTeamListPanel(redListPanel, attackerCodename);
-        } else {
-            buildGreenTeamListPanel(greenListPanel, attackerCodename);
-            buildRedTeamListPanel(redListPanel, "");
-        }
-
-        updateTeamScores();
-
-        mainPanel.revalidate();
-        mainPanel.repaint();
     }
 
     public static JPanel getMainPanel() {

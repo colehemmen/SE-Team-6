@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.sql.SQLException;
 
 public class PlayerEntry {
 
@@ -79,7 +80,11 @@ public class PlayerEntry {
                 return;
             }
             int playerID = Integer.parseInt(playerIDText);
-            processPlayerID(playerID);
+            try {
+                processPlayerID(playerID);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         cardPanel.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
@@ -103,7 +108,7 @@ public class PlayerEntry {
                 });
     }
 
-    private static void processPlayerID(int playerID) {
+    private static void processPlayerID(int playerID) throws SQLException {
         String existingCodename = databaseConnection.getCodenameByPlayerId(playerID);
 
         if(existingCodename != null) {

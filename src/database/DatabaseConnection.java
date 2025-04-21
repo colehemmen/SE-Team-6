@@ -15,30 +15,24 @@ public class DatabaseConnection {
         connectToDatabase();
     }
 
-    public String getCodenameByPlayerId(Integer playerId) {
-        try {
-            PreparedStatement query = connection.prepareStatement("SELECT codename FROM player WHERE id = ?");
-            query.setInt(1, playerId);
+    public String getCodenameByPlayerId(Integer playerId) throws SQLException {
+        PreparedStatement query = connection.prepareStatement("SELECT codename FROM player WHERE id = ?");
+        query.setInt(1, playerId);
 
-            ResultSet rs = query.executeQuery();
+        ResultSet rs = query.executeQuery();
 
-            if (rs.next()) {
-                return rs.getString("codename");
-            } else {
-                return null;
-            }
-        } catch (SQLException e) {
+        if (rs.next()) {
+            return rs.getString("codename");
+        } else {
             return null;
         }
     }
 
-    public void createNewPlayerByIdAndCodename(Integer playerId, String codeName) {
-        try {
-            PreparedStatement insertStmt = connection.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)");
-            insertStmt.setInt(1, playerId);
-            insertStmt.setString(2, codeName);
-            insertStmt.executeUpdate();
-        } catch (SQLException ignored) { }
+    public void createNewPlayerByIdAndCodename(Integer playerId, String codeName) throws SQLException {
+        PreparedStatement insertStmt = connection.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)");
+        insertStmt.setInt(1, playerId);
+        insertStmt.setString(2, codeName);
+        insertStmt.executeUpdate();
     }
 
     private static void connectToDatabase() {
