@@ -15,6 +15,16 @@ public class DatabaseConnection {
         connectToDatabase();
     }
 
+    public Boolean createTables() throws SQLException {
+        PreparedStatement query = connection.prepareStatement("CREATE TABLE IF NOT EXISTS players ("
+                + "id INT PRIMARY KEY, "
+                + "codename VARCHAR(30) UNIQUE NOT NULL)");
+
+        ResultSet rs = query.executeQuery();
+
+        return rs.next();
+    }
+
     public String getCodenameByPlayerId(Integer playerId) throws SQLException {
         PreparedStatement query = connection.prepareStatement("SELECT codename FROM player WHERE id = ?");
         query.setInt(1, playerId);

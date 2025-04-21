@@ -67,13 +67,14 @@ public class Main {
         }).start();
     }
 
-    private static void initializeScreens() throws SocketException, UnknownHostException {
+    private static void initializeScreens() throws SocketException, UnknownHostException, SQLException {
         Consumer<String> handler = GameAction::processEvent;
 
         UDPClient udpClient = new UDPClient(7500);
         UDPServer udpServer = new UDPServer(7501, udpClient, handler);
         DatabaseConnection database = new DatabaseConnection();
 
+        database.createTables();
         udpServer.start();
 
         new PlayerEntry(database, udpClient, textFields);
