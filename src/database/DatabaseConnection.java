@@ -26,7 +26,7 @@ public class DatabaseConnection {
     }
 
     public String getCodenameByPlayerId(Integer playerId) throws SQLException {
-        PreparedStatement query = connection.prepareStatement("SELECT codename FROM player WHERE id = ?");
+        PreparedStatement query = connection.prepareStatement("SELECT codename FROM players WHERE id = ?");
         query.setInt(1, playerId);
 
         ResultSet rs = query.executeQuery();
@@ -39,7 +39,7 @@ public class DatabaseConnection {
     }
 
     public void createNewPlayerByIdAndCodename(Integer playerId, String codeName) throws SQLException {
-        PreparedStatement insertStmt = connection.prepareStatement("INSERT INTO player (id, codename) VALUES (?, ?)");
+        PreparedStatement insertStmt = connection.prepareStatement("INSERT INTO players (id, codename) VALUES (?, ?)");
         insertStmt.setInt(1, playerId);
         insertStmt.setString(2, codeName);
         insertStmt.executeUpdate();
