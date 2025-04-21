@@ -20,9 +20,9 @@ public class DatabaseConnection {
                 + "id INT PRIMARY KEY, "
                 + "codename VARCHAR(30) UNIQUE NOT NULL)");
 
-        ResultSet rs = query.executeQuery();
+        int result = query.executeUpdate();
 
-        return rs.next();
+        return result == 0;
     }
 
     public String getCodenameByPlayerId(Integer playerId) throws SQLException {
