@@ -145,7 +145,7 @@ public class Countdown {
         backgroundLabel.setBounds(backgroundX, backgroundY, scaledBackgroundWidth, scaledBackgroundHeight);
 
         JLabel countdownLabel = new JLabel(countdownImage);
-        countdownLabel.setBounds(countdownX, countdownY, scaledCountdownWidth, scaledCountdownHeight);
+        countdownLabel.setBounds(countdownX, (countdownY + 45), scaledCountdownWidth, scaledCountdownHeight);
 
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setPreferredSize(panel.getSize());
