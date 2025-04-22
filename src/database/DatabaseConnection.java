@@ -16,7 +16,8 @@ public class DatabaseConnection {
     }
 
     public Boolean createTables() throws SQLException {
-        PreparedStatement query = connection.prepareStatement("CREATE TABLE IF NOT EXISTS players ("
+        PreparedStatement query = connection.prepareStatement(
+                "CREATE TABLE IF NOT EXISTS players ("
                 + "id INT PRIMARY KEY, "
                 + "codename VARCHAR(30) UNIQUE NOT NULL)");
 

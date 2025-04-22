@@ -108,8 +108,25 @@ public class Countdown {
                 Countdown.class.getClassLoader().getResource(String.format("images/countdown/%s.png", id)))
         );
 
-        ImageIcon backgroundImage = new ImageIcon(ogBackgroundImage.getImage().getScaledInstance(636, 483, Image.SCALE_SMOOTH));
-        ImageIcon countdownImage = new ImageIcon(ogCountdownImage.getImage().getScaledInstance(264, 121, Image.SCALE_SMOOTH));
+        // calculate scaling for images
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = screenSize.width;
+        int screenHeight = screenSize.height;
+
+        double scaleFactor = Math.max(screenWidth / 1920.0, screenHeight / 1080.0);
+
+        int scaledBackgroundWidth = (int) (636 * scaleFactor);
+        int scaledBackgroundHeight = (int) (483 * scaleFactor);
+
+        int scaledCountdownWidth = (int) (264 * scaleFactor) + 25;
+        int scaledCountdownHeight = (int) (121 * scaleFactor);
+
+        ImageIcon backgroundImage = new ImageIcon(
+                ogBackgroundImage.getImage().getScaledInstance(scaledBackgroundWidth, scaledBackgroundHeight, Image.SCALE_SMOOTH)
+        );
+        ImageIcon countdownImage = new ImageIcon(
+                ogCountdownImage.getImage().getScaledInstance(scaledCountdownWidth, scaledCountdownHeight, Image.SCALE_SMOOTH)
+        );
 
         JLayeredPane layeredPane = getLayeredPane(backgroundImage, countdownImage);
 
