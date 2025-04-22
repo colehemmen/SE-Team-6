@@ -142,6 +142,6 @@ public class PlayerEntry {
 
         GameAction.updateTextValues(textFields);
 
-        SwingUtilities.invokeLater(() -> Countdown.run(cardLayout, cardPanel));
+        Countdown.run(cardLayout, cardPanel);
     }
 }
