@@ -22,13 +22,10 @@ public class UDPServer extends Thread {
         boolean running = true;
 
         while(running) {
-            System.out.println("running");
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             try {
-                System.out.println("received");
                 socket.receive(packet);
             } catch (IOException e) {
-                System.out.println("failed");
                 throw new RuntimeException(e);
             }
 

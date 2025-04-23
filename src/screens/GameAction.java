@@ -34,13 +34,20 @@ public class GameAction {
     private static JPanel redListPanel;
 
     private static JTextArea eventFeedArea;
+
     private static JLabel greenTeamScoreLabel;
     private static JLabel redTeamScoreLabel;
+
+    private static JLabel greenLabel;
+    private static JLabel redLabel;
+
     private static JPanel greenPanel;
     private static JPanel redPanel;
 
     private static javax.swing.Timer flashTimer;
-    private static boolean flashToggle = false;
+
+    private static String previousFlashingTeam = "";
+    private static String flashingTeam = "";
 
     public GameAction(JTextField[][] tfs, DatabaseConnection db, UDPClient udp, CardLayout cLayout, JPanel cardPanel) {
         databaseConnection = db;
@@ -159,7 +166,7 @@ public class GameAction {
         greenPanel.setBackground(Color.GREEN);
         greenPanel.setName("green-panel");
 
-        JLabel greenLabel = new JLabel("GREEN TEAM", SwingConstants.CENTER);
+        greenLabel = new JLabel("GREEN TEAM", SwingConstants.CENTER);
         greenLabel.setFont(new Font("Arial", Font.BOLD, 25));
         greenLabel.setForeground(Color.GREEN);
 
@@ -188,7 +195,7 @@ public class GameAction {
         redPanel.setBackground(Color.PINK);
         redPanel.setName("red-panel");
 
-        JLabel redLabel = new JLabel("RED TEAM", SwingConstants.CENTER);
+        redLabel = new JLabel("RED TEAM", SwingConstants.CENTER);
         redLabel.setFont(new Font("Arial", Font.BOLD, 25));
         redLabel.setForeground(Color.RED);
 
@@ -275,6 +282,7 @@ public class GameAction {
         returnButton.addActionListener(e -> {
             timer.stop();
             timeRemaining = 360; // reset countdown clock
+            flashTimer.stop(); // stop timer
             playMP3.close(); // stops music
 
             udpClient.transitStatusCode(221); // transmit game stopped if returned to player action screen
@@ -369,19 +377,60 @@ public class GameAction {
 
         if (greenTeamScoreLabel != null) greenTeamScoreLabel.setText("Team Score: " + greenScore);
         if (redTeamScoreLabel != null) redTeamScoreLabel.setText("Team Score: " + redScore);
+
+        if(greenScore > redScore) {
+            flashingTeam = "green";
+        } else if (redScore > greenScore) {
+            flashingTeam = "red";
+        } else {
+            flashingTeam = "";
+        }
     }
 
     private static void startFlashingEffect() {
         flashTimer = new javax.swing.Timer(500, e -> {
-            flashToggle = !flashToggle;
-            if (flashToggle) {
-                greenPanel.setBackground(Color.DARK_GRAY);
-                redPanel.setBackground(Color.PINK);
-            } else {
-                greenPanel.setBackground(Color.GREEN);
-                redPanel.setBackground(Color.PINK);
+            if (flashingTeam.equals("green")) {
+                if (previousFlashingTeam.equals("green")) {
+                    // Continue flashing green team with yellow
+                    if (greenLabel.getForeground().equals(Color.GREEN)) {
+                        // Change to yellow
+                        greenLabel.setForeground(Color.YELLOW);
+                    } else {
+                        // Change back to green
+                        greenLabel.setForeground(Color.GREEN);
+                    }
+                } else {
+                    // Team has changed to green, reset red team to its normal color
+                    redLabel.setForeground(Color.RED);  // Set red team's normal color
+                    greenLabel.setForeground(Color.GREEN);  // Set green team's normal color
+                }
+            } else if (flashingTeam.equals("red")) {
+                if (previousFlashingTeam.equals("red")) {
+                    // Continue flashing red team with yellow
+                    if (redLabel.getForeground().equals(Color.RED)) {
+                        // Change to yellow
+                        redLabel.setForeground(Color.YELLOW);
+                    } else {
+                        // Change back to red
+                        redLabel.setForeground(Color.RED);
+                    }
+                } else {
+                    // Team has changed to red, reset green team to its normal color
+                    greenLabel.setForeground(Color.GREEN);  // Set green team's normal color
+                    redLabel.setForeground(Color.RED);  // Set red team's normal color
+                }
             }
+
+            // Update the previous flashing team
+            previousFlashingTeam = flashingTeam;
+
+            // Repaint and validate to apply changes
+            greenPanel.repaint();
+            redPanel.repaint();
+            greenPanel.validate();
+            redPanel.validate();
         });
+
         flashTimer.start();
     }
 }
