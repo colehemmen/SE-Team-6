@@ -26,6 +26,7 @@ public class GameAction {
     private static JLabel timerLabel;
     private static int timeRemaining = 360;
 
+    private static final Set<String> baseTaggers = new HashSet<>();
 
     private static final Map<String, Integer> playerScores = new HashMap<>();
 
@@ -103,11 +104,13 @@ public class GameAction {
             if (targetId.equals("43")) { // Green base hit
                 if (!isGreenAttacker) { // Red player tags the base (green player cannot tag their own base)
                     playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                    baseTaggers.add(attackerCodename);
                     addEventToFeed("Player " + attackerCodename + " hit the GREEN BASE!");
                 }
             } else if (targetId.equals("53")) { // Red base hit
                 if (isGreenAttacker) { // Green player tags the base (red player cannot tag their own base)
                     playerScores.put(attackerCodename, playerScores.getOrDefault(attackerId, 0) + 100);
+                    baseTaggers.add(attackerCodename);
                     addEventToFeed("Player " + attackerCodename + " hit the RED BASE!");
                 }
             } else {
@@ -149,23 +152,6 @@ public class GameAction {
         }
         return false;
     }
-
-    /*private static void addStyleB(String attackerCodename, JPanel panel) {
-        for (Component comp : panel.getComponents()) {
-            if (comp instanceof JLabel) {
-                JLabel label = (JLabel) comp;
-                String labelText = label.getText();
-        
-                if (labelText.contains(attackerCodename)) {
-                    // Match found
-                    if(!labelText.startsWith("🄱")) {
-                        label.setText("🄱  " + labelText);
-                    }
-                    break;
-                }
-            }
-        }
-    }*/
 
     private static JPanel buildGreenTeamPanel() {
         greenPanel = new JPanel(new BorderLayout());
@@ -242,13 +228,12 @@ public class GameAction {
 
         for (Player player : greenPlayers) {
             JLabel label;
-            if(attackerCodeName.equals(player.getCodename())) {
+            if(attackerCodeName.equals(player.getCodename()) || baseTaggers.contains(player.getCodename())) {
                 label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             else {
                 label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
-            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
@@ -270,13 +255,12 @@ public class GameAction {
 
         for (Player player : redPlayers) {
             JLabel label;
-            if(attackerCodeName.equals(player.getCodename())) {
+            if(attackerCodeName.equals(player.getCodename()) || baseTaggers.contains(player.getCodename())) {
                 label = new JLabel("🄱  " + player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
             else {
                 label = new JLabel(player.getCodename() + " - " + player.getScore() + " pts", SwingConstants.CENTER);
             }
-            //label.setFont(new Font("Arial", Font.PLAIN, 18));
             panel.add(label);
         }
     }
