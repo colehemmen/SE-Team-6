@@ -277,6 +277,8 @@ public class GameAction {
             timeRemaining = 360; // reset countdown clock
             playMP3.close(); // stops music
 
+            udpClient.transitStatusCode(221); // transmit game stopped if returned to player action screen
+
             cLayout.show(cPanel, "player-entry");
         });
 
