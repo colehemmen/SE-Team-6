@@ -22,20 +22,15 @@ public class UDPServer extends Thread {
         boolean running = true;
 
         while(running) {
-            System.out.println("running");
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             try {
-                System.out.println("received");
                 socket.receive(packet);
             } catch (IOException e) {
-                System.out.println("failed");
                 throw new RuntimeException(e);
             }
 
             String received = new String(packet.getData(), 0, packet.getLength());
             handler.accept(received);
-
-            System.out.println(received);
 
             udpClient.transmitMessage(String.format("Processed: %s", received));
         }

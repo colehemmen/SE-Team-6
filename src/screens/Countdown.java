@@ -108,33 +108,55 @@ public class Countdown {
                 Countdown.class.getClassLoader().getResource(String.format("images/countdown/%s.png", id)))
         );
 
-        ImageIcon backgroundImage = new ImageIcon(ogBackgroundImage.getImage().getScaledInstance(636, 483, Image.SCALE_SMOOTH));
-        ImageIcon countdownImage = new ImageIcon(ogCountdownImage.getImage().getScaledInstance(264, 121, Image.SCALE_SMOOTH));
+        // calculate scaling for images
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = screenSize.width;
+        int screenHeight = screenSize.height;
 
-        JLayeredPane layeredPane = getLayeredPane(backgroundImage, countdownImage);
+        int backgroundWidth = 636;  // Original size of background image
+        int backgroundHeight = 483; // Original size of background image
 
-        panel.removeAll();
-        panel.setLayout(new BorderLayout());
-        panel.add(layeredPane, BorderLayout.CENTER);
-        panel.revalidate();
-        panel.repaint();
-    }
+        int countdownWidth = 264;   // Original size of countdown image
+        int countdownHeight = 121;  // Original size of countdown image
 
-    private static JLayeredPane getLayeredPane(ImageIcon backgroundImage, ImageIcon countdownImage) {
+// Scale images relative to the screen size (optional)
+        int scaledBackgroundWidth = (int) (screenWidth * 0.5);  // 50% of screen width (adjust as needed)
+        int scaledBackgroundHeight = (int) (scaledBackgroundWidth * (backgroundHeight / (double) backgroundWidth));  // Maintain aspect ratio
+
+        int scaledCountdownWidth = (int) (screenWidth * 0.2);    // 20% of screen width (adjust as needed)
+        int scaledCountdownHeight = (int) (scaledCountdownWidth * (countdownHeight / (double) countdownWidth));  // Maintain aspect ratio
+
+// Calculate center positions for both images
+        int backgroundX = (screenWidth - scaledBackgroundWidth) / 2;
+        int backgroundY = (screenHeight - scaledBackgroundHeight) / 2;
+
+        int countdownX = (screenWidth - scaledCountdownWidth) / 2;
+        int countdownY = (screenHeight - scaledCountdownHeight) / 2;
+
+        ImageIcon backgroundImage = new ImageIcon(
+                ogBackgroundImage.getImage().getScaledInstance(scaledBackgroundWidth, scaledBackgroundHeight, Image.SCALE_SMOOTH)
+        );
+
+        ImageIcon countdownImage = new ImageIcon(
+                ogCountdownImage.getImage().getScaledInstance(scaledCountdownWidth, scaledCountdownHeight, Image.SCALE_SMOOTH)
+        );
+
         JLabel backgroundLabel = new JLabel(backgroundImage);
-        backgroundLabel.setBounds(0, 0, panel.getWidth(), panel.getHeight());
+        backgroundLabel.setBounds(backgroundX, backgroundY, scaledBackgroundWidth, scaledBackgroundHeight);
 
         JLabel countdownLabel = new JLabel(countdownImage);
-        int cw = countdownImage.getIconWidth();
-        int ch = countdownImage.getIconHeight();
-
-        countdownLabel.setBounds(589, 420, cw, ch);
+        countdownLabel.setBounds(countdownX, (countdownY + 45), scaledCountdownWidth, scaledCountdownHeight);
 
         JLayeredPane layeredPane = new JLayeredPane();
         layeredPane.setPreferredSize(panel.getSize());
 
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
         layeredPane.add(countdownLabel, JLayeredPane.PALETTE_LAYER);
-        return layeredPane;
+
+        panel.removeAll();
+        panel.setLayout(new BorderLayout());
+        panel.add(layeredPane, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
     }
 }

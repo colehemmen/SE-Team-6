@@ -9,6 +9,7 @@ import udp.UDPServer;
 import java.awt.*;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.function.Consumer;
 import javax.swing.*;
 
@@ -20,7 +21,7 @@ public class Main {
     private static final JPanel cardPanel = new JPanel(cardLayout);
     private static final JTextField[][] textFields = new JTextField[15][2];
 
-    public static void main(String[] args) throws SocketException, UnknownHostException {
+    public static void main(String[] args) throws SocketException, UnknownHostException, SQLException {
         initializeFrame();
         initializeScreens();
 
@@ -66,13 +67,14 @@ public class Main {
         }).start();
     }
 
-    private static void initializeScreens() throws SocketException, UnknownHostException {
+    private static void initializeScreens() throws SocketException, UnknownHostException, SQLException {
         Consumer<String> handler = GameAction::processEvent;
 
         UDPClient udpClient = new UDPClient(7500);
         UDPServer udpServer = new UDPServer(7501, udpClient, handler);
         DatabaseConnection database = new DatabaseConnection();
 
+        database.createTables();
         udpServer.start();
 
         new PlayerEntry(database, udpClient, textFields);
