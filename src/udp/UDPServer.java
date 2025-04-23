@@ -32,8 +32,6 @@ public class UDPServer extends Thread {
             String received = new String(packet.getData(), 0, packet.getLength());
             handler.accept(received);
 
-            System.out.println(received);
-
             udpClient.transmitMessage(String.format("Processed: %s", received));
         }
 
