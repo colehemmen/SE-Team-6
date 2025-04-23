@@ -17,7 +17,8 @@ JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 CLASSPATH=".:/usr/share/java/posgresql-jdbc4.jar"
 ```
 
-Note: Double check that Java was installed to the location above. If not, reinstall in the correct location.
+Double check that Java was installed to the location above. If not, reinstall in the correct location.
+Resize the screen to 1920x1080. Otherwise the game screen will not fit within the VM screen.
 
 ## Running the Program
 Navigate to the project's directory, and execute the following to compile the program:
